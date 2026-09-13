@@ -210,16 +210,7 @@ class evaluator {
                     if ($qa) {
                         $currentmark = $qa->get_mark();
                         $rawcomment = $qa->get_manual_comment();
-                        if (is_array($rawcomment) && isset($rawcomment[0])) {
-                            $currentfeedback = (string)$rawcomment[0];
-                        } else if (is_string($rawcomment)) {
-                            $currentfeedback = $rawcomment;
-                        } else {
-                            $currentfeedback = '';
-                        }
-                        if (trim($currentfeedback) === 'Array') {
-                            $currentfeedback = '';
-                        }
+                        $currentfeedback = self::clean_manual_comment($rawcomment);
                     }
                 } catch (\Exception $e) {
                     unset($e); // Intentionally ignore: slot not in usage yet.
@@ -451,6 +442,8 @@ class evaluator {
                     break;
                 }
             }
+
+            $cleancomment = self::clean_manual_comment($comment);
             if ($audiofile) {
                 $audiourl = \moodle_url::make_pluginfile_url(
                     $context->id,
@@ -461,19 +454,13 @@ class evaluator {
                     $audiofile->get_filename()
                 )->out(false);
 
-                $audiolabel = get_string('savedaudio', 'quiz_oralexam');
-                $playerhtml = '<div class="oralexam-review-player" style="margin: 10px 0 6px 0; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 440px;">' .
-                    '<div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">' .
-                    '<span style="font-size: 15px;">🎙️</span> ' . s($audiolabel) .
-                    '</div>' .
-                    '<audio controls preload="metadata" src="' . $audiourl . '" style="width: 100%; height: 38px; border-radius: 6px;"></audio>' .
-                    '</div>';
-                // Remove previous embedded player snippet if any to avoid duplication.
-                $cleancomment = preg_replace('/<div class="oralexam-review-player".*?<\/div>/s', '', $comment);
-                $comment = trim($cleancomment) . "\n" . $playerhtml;
+                $playerhtml = self::build_audio_player_html($audiourl);
+                $finalcomment = !empty($cleancomment) ? ($cleancomment . "\n" . $playerhtml) : $playerhtml;
+            } else {
+                $finalcomment = $cleancomment;
             }
 
-            $quba->manual_grade($slotno, $comment, $mark, FORMAT_HTML);
+            $quba->manual_grade($slotno, $finalcomment, $mark, FORMAT_HTML);
         }
 
         // 3. Save question usage state.
@@ -522,5 +509,56 @@ class evaluator {
         }
 
         return $attempt;
+    }
+
+    /**
+     * Clean examiner manual comment by stripping out any embedded audio player HTML,
+     * delimiters, legacy audio tags, and stray closing divs.
+     *
+     * @param mixed $comment The raw comment string or array.
+     * @return string Pure human text comment.
+     */
+    public static function clean_manual_comment($comment): string {
+        if (is_array($comment)) {
+            $comment = isset($comment[0]) ? (string)$comment[0] : '';
+        }
+        if (empty($comment) || !is_string($comment) || trim($comment) === 'Array') {
+            return '';
+        }
+
+        // 1. Strip delimited audio player blocks.
+        $cleaned = preg_replace('/<!--\s*ORALEXAM_AUDIO_START\s*-->.*?<!--\s*ORALEXAM_AUDIO_END\s*-->/si', '', $comment);
+
+        // 2. Strip legacy oralexam-review-player wrapper divs (including nested divs).
+        $cleaned = preg_replace('/<div\s+class="oralexam-review-player"[^>]*>.*?<\/div>\s*<\/div>/si', '', $cleaned);
+        $cleaned = preg_replace('/<div\s+class="oralexam-review-player"[^>]*>.*?<\/div>/si', '', $cleaned);
+        $cleaned = preg_replace('/<div\s+class="oralexam-review-player"[^>]*>.*$/si', '', $cleaned);
+
+        // 3. Strip any stray <audio> tags (with or without closing tag).
+        $cleaned = preg_replace('/<audio\b[^>]*>.*?<\/audio>/si', '', $cleaned);
+        $cleaned = preg_replace('/<audio\b[^>]*>/si', '', $cleaned);
+
+        // 4. Strip any orphaned </div> tags left behind by broken previous regexes.
+        $cleaned = preg_replace('/<\/div>/si', '', $cleaned);
+
+        return trim($cleaned);
+    }
+
+    /**
+     * Build standard embedded audio player HTML with delimiter comments.
+     *
+     * @param string $audiourl URL to the audio recording.
+     * @return string
+     */
+    public static function build_audio_player_html(string $audiourl): string {
+        $audiolabel = get_string('savedaudio', 'quiz_oralexam');
+        return "\n<!-- ORALEXAM_AUDIO_START -->\n" .
+            '<div class="oralexam-review-player" style="margin: 10px 0 6px 0; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 440px;">' .
+            '<div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">' .
+            '<span style="font-size: 15px;">🎙️</span> ' . s($audiolabel) .
+            '</div>' .
+            '<audio controls preload="metadata" src="' . $audiourl . '" style="width: 100%; height: 38px; border-radius: 6px;"></audio>' .
+            "</div>\n" .
+            "<!-- ORALEXAM_AUDIO_END -->";
     }
 }

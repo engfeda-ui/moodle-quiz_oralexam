@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.4.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.4.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,12 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.4.3 (2026-09-13)
+- **Sanitized Examiner Notes & Fixed Audio Player HTML Leak in Comments:**
+  - **Isolated Feedback Text from Audio Markup (`clean_manual_comment`)**: Introduced robust audio markup extraction ensuring examiner feedback notes (`feedback[$slot]`) contain strictly pure human text comments, completely eliminating raw `<div class="oralexam-review-player">` and `<audio>` HTML tags from polluting examiner input fields.
+  - **Protected Audio Player Embedding with Delimiters (`<!-- ORALEXAM_AUDIO_START/END -->`)**: Wrapped the embedded review audio card inside discrete HTML comment markers, preventing nested `<div>` regex truncation and stopping player duplication / stacked audio tags on repeated evaluations.
+  - **Clean Attempt Review in Moodle (`review.php`)**: Resolved duplicate and orphaned `<audio>` tags in Moodle's native quiz review page, restoring clean layout and single-player playback per question.
 
 ### v1.4.2 (2026-09-10)
 - **Comprehensive RTL & Bi-Directional Layout Support:**
