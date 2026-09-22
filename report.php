@@ -400,7 +400,8 @@ class quiz_oralexam_report extends quiz_default_report {
         echo $OUTPUT->user_picture($u, ['size' => 60]);
         echo html_writer::start_div('student-details');
         echo html_writer::tag('h2', fullname($u), ['class' => 'student-fullname']);
-        echo html_writer::tag('span', 'Academic ID: ' . ($u->idnumber ?: '—'), ['class' => 'badge badge-secondary mr-2']);
+        $acadlabel = get_string('academicid', 'quiz_oralexam');
+        echo html_writer::tag('span', $acadlabel . ': ' . ($u->idnumber ?: '—'), ['class' => 'badge badge-secondary mr-2']);
         if (!empty($u->department)) {
             echo html_writer::tag('span', $u->department, ['class' => 'badge badge-info mr-2']);
         }
@@ -720,6 +721,15 @@ class quiz_oralexam_report extends quiz_default_report {
             get_string('notanoralexam_title', 'quiz_oralexam') . '</h3>';
         echo '    <p class="text-muted lead mb-4" style="font-size: 1.05rem; line-height: 1.8;">' .
             get_string('notanoralexam_desc', 'quiz_oralexam') . '</p>';
+
+        $hasaccessrule = (\core_plugin_manager::instance()->get_plugin_info('quizaccess_oralexam') !== null);
+        if (!$hasaccessrule) {
+            echo '    <div class="alert alert-warning mb-4 text-center font-weight-bold" style="border-radius: 8px;">' .
+                '<i class="fa fa-exclamation-triangle mr-2"></i>' .
+                get_string('missingaccessrule', 'quiz_oralexam') .
+                '</div>';
+        }
+
         echo '    <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-2">';
         if ($canedit) {
             echo '      <a href="' . $settingsurl->out(false) . '" class="btn btn-primary btn-lg font-weight-bold shadow-sm px-4 m-1">';

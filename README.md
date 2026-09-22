@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.4.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.4.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -26,7 +26,7 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
   - Instant visual status indicators: compact circular pending status (🕒) and evaluated score pill (e.g. `30 pts`).
 - **🎯 Competency Tagging & Mapping:** Pulls competency tags directly from questions mapped via `qbank_comp_ext`, providing examiners with clear mastery rubrics.
 - **🛡️ Enterprise-Ready Integrations:**
-  - **Security Companion:** Enforces mutual dependency on [`quizaccess_oralexam`](https://github.com/engfeda-ui/quizaccess_oralexam) to prevent students from attempting oral exams independently.
+  - **Security Companion:** Seamlessly pairs with [`quizaccess_oralexam`](https://github.com/engfeda-ui/quizaccess_oralexam) to prevent students from attempting oral exams independently.
   - **GDPR Privacy Compliance:** Implements Moodle's Privacy Subsystem (`null_provider`) adhering to GDPR regulations.
   - **Localization Support:** Full bilingual English and Arabic (`ar`) language packs included.
   - **CI/CD Ready:** Automated GitHub Actions workflows using `moodle-plugin-ci`.
@@ -40,7 +40,7 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 | **Moodle Framework** | Moodle 4.0 to 5.2+ (Tested against Moodle 4.5/5.0+ stable branches) |
 | **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
 | **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
-| **Required Sub-Plugin** | [`quizaccess_oralexam`](https://github.com/engfeda-ui/quizaccess_oralexam) |
+| **Recommended Sub-Plugin** | [`quizaccess_oralexam`](https://github.com/engfeda-ui/quizaccess_oralexam) (to restrict student self-attempts) |
 
 ---
 
@@ -81,6 +81,15 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.4.4 (2026-09-22)
+- **Resolved Moodle Plugins Directory Approval Review Feedback:**
+  - **Added Root License File (#2)**: Included official GNU General Public License v3 (`LICENSE`) file in the plugin root.
+  - **Eliminated Circular Dependency (#6)**: Removed hard requirement on `quizaccess_oralexam` in `version.php`, allowing independent installation of either plugin in any order, with graceful degradation.
+  - **Fixed Unrated Warning Placeholder & Eliminated PHP Warning (#7)**: Rewrote `$string['unratedwarning']` using single quotes to preserve the `{$a}` placeholder for Moodle's string API and eliminate undefined variable runtime warnings.
+  - **Pure Language File String Syntax (#4)**: Removed all string concatenation (`.`) operators across `lang/en/quiz_oralexam.php` and `lang/ar/quiz_oralexam.php`.
+  - **Localized User-Facing Text (#3)**: Replaced hard-coded `Academic ID` with official localized string `$string['academicid']`.
+  - **Relocated Sample Question Bank (#8)**: Moved sample question bank file out of the plugin root into `samples/` documentation directory.
 
 ### v1.4.3 (2026-09-13)
 - **Sanitized Examiner Notes & Fixed Audio Player HTML Leak in Comments:**

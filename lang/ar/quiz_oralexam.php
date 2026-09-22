@@ -24,17 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['academicid'] = 'الرقم الأكاديمي';
 $string['allgroups'] = 'جميع المجموعات';
+$string['allmodels'] = 'عرض جميع النماذج';
 $string['allstatuses'] = 'جميع المتدربين';
+$string['attempttab'] = 'المحاولة #{$a->num} ({$a->grade} درجة)';
 $string['averagegrade'] = 'متوسط درجات المجموعة';
 $string['backtolist'] = 'العودة لقائمة المتدربين';
-$string['cannotattemptoral'] = 'هذا اختبار شفهي / عملي يتم تقييمه ورصد درجاته مباشرة من قبل المقيم. ' .
-    'غير مصرح للطلاب ببدء المحاولة أو إدخال الإجابات ذاتياً.';
+$string['cannotattemptoral'] = 'هذا اختبار شفهي / عملي يتم تقييمه ورصد درجاته مباشرة من قبل المقيم. غير مصرح للطلاب ببدء المحاولة أو إدخال الإجابات ذاتياً.';
 $string['clickstudentprompt'] = 'اختر متدرباً من القائمة الجانبية لفتح استمارة التقييم الشفهي ورصد الدرجات.';
 $string['competency'] = 'الجدارة المرتبطة';
 $string['computedtotal'] = 'المجموع الكلي:';
 $string['confirmfinish'] = 'هل أنت متأكد من اعتماد التقييم الشفهي؟ سيتم ترحيل وتحديث الدرجة في سجل الدرجات المعتمد فوراً.';
+$string['currentattempt'] = 'المحاولة الحالية';
 $string['custommark'] = 'الدرجة';
+$string['discardaudio'] = 'حذف التسجيل';
 $string['editingattempt'] = 'تعديل المحاولة رقم #{$a}';
 $string['evaluatedby'] = 'تم التقييم بواسطة {$a->examiner} بتاريخ {$a->date}';
 $string['evaluatedstudents'] = 'تم التقييم';
@@ -45,16 +49,17 @@ $string['evaluationsheet'] = 'استمارة التقييم الشفهي وال�
 $string['examinernotes'] = 'ملاحظات وتغذية راجعة من المقيم:';
 $string['full'] = '100% (كاملة)';
 $string['generalfeedback'] = 'الملاحظات العامة على الاختبار الشفهي';
-$string['generalfeedback_placeholder'] = 'أدخل أي ملاحظات عامة حول أداء المتدرب، مهارات التواصل، ' .
-    'أو النقاط التي تميز أو تعثر بها...';
-$string['attempttab'] = 'المحاولة #{$a->num} ({$a->grade} درجة)';
-$string['currentattempt'] = 'المحاولة الحالية';
-$string['discardaudio'] = 'حذف التسجيل';
+$string['generalfeedback_placeholder'] = 'أدخل أي ملاحظات عامة حول أداء المتدرب، مهارات التواصل، أو النقاط التي تميز أو تعثر بها...';
 $string['gotoquizsettings'] = 'تفعيل الاختبار الشفهي في الإعدادات';
 $string['half'] = '50% (نصف)';
 $string['lastattemptgrade'] = 'الدرجة المسجلة: {$a->grade} / {$a->maxgrade} ({$a->percent}%)';
 $string['maxmark'] = 'الدرجة العظمى: {$a} درجات';
 $string['micnotallowed'] = 'تم رفض الوصول للميكروفون. يرجى السماح بالإذن في المتصفح لتتمكن من تسجيل إجابة المتدرب.';
+$string['missingaccessrule'] = 'يُوصى بتثبيت إضافة قيد الاختبار الشفهي (quizaccess_oralexam) لمنع المتدربين من محاولة حل هذا الاختبار إلكترونياً.';
+$string['model_chosen_note'] = 'تم التقييم على النموذج: {$a}';
+$string['modela'] = 'نموذج (A) - مكافحة الحرائق';
+$string['modelb'] = 'نموذج (B) - تبريد التوربين';
+$string['modelc'] = 'نموذج (C) - مياه المحطة';
 $string['newattempt'] = 'تسجيل محاولة جديدة (إعادة تقييم)';
 $string['nocompetency'] = 'لا توجد جدارة مرتبطة';
 $string['nostudentsfound'] = 'لا يوجد متدربون مسجلون يطابقون المجموعة أو معايير البحث المحددة.';
@@ -68,8 +73,7 @@ $string['oralexamnotice_desc'] = 'يتم إجراء وتقييم هذا الاخ
 $string['pendingstudents'] = 'قيد الانتظار';
 $string['pluginname'] = 'مقيم الاختبارات الشفهية والعملية';
 $string['prevattempts'] = 'المحاولات والتقييمات السابقة:';
-$string['privacy:metadata'] = 'إضافة مقيم الاختبارات الشفهية تقوم برصد الدرجات مباشرة في جداول الاختبارات الأساسية ' .
-    'التابعة لمودل ولا تخزن أي بيانات شخصية خاصة بشكل مستقل.';
+$string['privacy:metadata'] = 'إضافة مقيم الاختبارات الشفهية تقوم برصد الدرجات مباشرة في جداول الاختبارات الأساسية التابعة لمودل ولا تخزن أي بيانات شخصية خاصة بشكل مستقل.';
 $string['questionno'] = 'السؤال رقم #{$a}';
 $string['quickscore'] = 'رصد سريع:';
 $string['recordaudio'] = 'تسجيل إجابة الطالب';
@@ -81,6 +85,7 @@ $string['resumingattempt'] = 'استئناف التقييم للمحاولة ا�
 $string['saveandfinish'] = 'حفظ واعتماد التقييم الشفهي';
 $string['savedaudio'] = 'التسجيل الصوتي لإجابة المتدرب';
 $string['searchstudent'] = 'بحث بالاسم أو الرقم التدريبي...';
+$string['selectmodel'] = 'تصفية نموذج الاختبار';
 $string['selectstudent'] = 'اختر متدرباً لبدء التقييم';
 $string['status_evaluated'] = 'تم التقييم';
 $string['status_pending'] = 'في انتظار التقييم';
@@ -88,15 +93,6 @@ $string['stoprecording'] = 'إيقاف';
 $string['studentnotenrolled'] = 'المتدرب المحدد غير مسجل في هذا المقرر الدراسي.';
 $string['submitting'] = 'جاري حفظ التقييم وترحيل الدرجات...';
 $string['totalstudents'] = 'إجمالي المتدربين';
-$string['unratedwarning'] = "تنبيه: يوجد {$a} أسئلة لم يتم رصد درجات لها.\n" .
-    "الأسئلة المتروكة سيتم احتساب درجتها تلقائياً (0.0).\n\n" .
-    "هل ترغب في المتابعة واعتماد التقييم؟";
+$string['unratedwarning'] = 'تنبيه: يوجد {$a} أسئلة لم يتم رصد درجات لها.\nالأسئلة المتروكة سيتم احتساب درجتها تلقائياً (0.0).\n\nهل ترغب في المتابعة واعتماد التقييم؟';
 $string['viewquizresults'] = 'معاينة سجل درجات الاختبار المعتمد';
 $string['zero'] = '0% (صفر)';
-$string['selectmodel'] = 'تصفية نموذج الاختبار';
-$string['allmodels'] = 'عرض جميع النماذج';
-$string['modela'] = 'نموذج (A) - مكافحة الحرائق';
-$string['modelb'] = 'نموذج (B) - تبريد التوربين';
-$string['modelc'] = 'نموذج (C) - مياه المحطة';
-$string['model_chosen_note'] = 'تم التقييم على النموذج: {$a}';
-
