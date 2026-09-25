@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bgGradOral" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="micGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="clipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#e2e8f0" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="glowOral" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Container Rounded Square -->
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="url(#bgGradOral)" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="2"/>
+
+  <!-- Sound Waves (Left) -->
+  <path d="M 32 44 A 24 24 0 0 0 32 72" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 24 38 A 34 34 0 0 0 24 78" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Sound Waves (Right) -->
+  <path d="M 76 44 A 24 24 0 0 1 76 72" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 84 38 A 34 34 0 0 1 84 78" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Microphone Stand & Mount -->
+  <path d="M 38 52 A 16 16 0 0 0 70 52" fill="none" stroke="#94a3b8" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="54" y1="68" x2="54" y2="82" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 42 82 L 66 82" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Microphone Capsule Body -->
+  <rect x="44" y="30" width="20" height="34" rx="10" fill="url(#micGrad)"/>
+  <!-- Microphone Grille Mesh Highlights -->
+  <line x1="44" y1="44" x2="64" y2="44" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.6"/>
+  <line x1="47" y1="36" x2="61" y2="36" stroke="#ffffff" stroke-width="1" stroke-opacity="0.4"/>
+  <line x1="47" y1="40" x2="61" y2="40" stroke="#ffffff" stroke-width="1" stroke-opacity="0.4"/>
+
+  <!-- Assessment Sheet / Evaluation Form -->
+  <g transform="translate(62, 54)">
+    <rect x="0" y="4" width="46" height="54" rx="6" fill="url(#clipGrad)" stroke="#cbd5e1" stroke-width="1.5" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.4))"/>
+    <!-- Form Clip Top -->
+    <rect x="15" y="0" width="16" height="7" rx="3" fill="#f59e0b" stroke="#d97706" stroke-width="1"/>
+    <!-- Evaluation Check Lines -->
+    <circle cx="12" cy="20" r="3" fill="#0284c7"/>
+    <line x1="20" y1="20" x2="38" y2="20" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="30" r="3" fill="#0284c7"/>
+    <line x1="20" y1="30" x2="38" y2="30" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="40" r="3" fill="#0284c7"/>
+    <line x1="20" y1="40" x2="32" y2="40" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Prominent Score Badge / Checkmark -->
+    <circle cx="36" cy="44" r="11" fill="url(#checkGrad)" stroke="#ffffff" stroke-width="2" filter="url(#glowOral)"/>
+    <path d="M 31 44 L 35 48 L 42 40" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.4.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,18 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.2 (2026-09-26)
+- **Official Moodle Plugins Directory & UI Icons (`pix/`):**
+  - **Moodle Plugins Directory Icon**: Created high-resolution 1024x1024, 512x512, and 256x256 PNG icons (`pix/icon.png`, `pix/icon_256.png`, `pix/icon_1024.png`) tailored for directory listing, search results, and plugin cards.
+  - **Vector SVG Icon (`pix/icon.svg`)**: Designed scalable vector graphic icon featuring a studio vocal microphone, sound waves, and evaluation checklist badge with glow accents, compatible with Moodle 4.x/5.x theme engine and high-DPI displays.
+  - **Moodle Directory Compliance**: Satisfies Moodle Plugins Directory approval requirement for official plugin branding assets.
+
+### v1.5.1 (2026-09-25)
+- **CodeSniffer Hotfix & PSR Compliance**: Resolved PSR-12 and PSR-2 coding standard warnings and errors across `report.php` and `lib.php`.
+
+### v1.5.0 (2026-09-25)
+- **Mustache Output API & AMD Module Migration**: Fully migrated report rendering to Mustache templates (`report_main`, `evaluation_sheet`, `not_oral_banner`) and AMD JavaScript module (`quiz_oralexam/evaluator`).
 
 ### v1.4.5 (2026-09-25)
 - **Zero-Tolerance Moodle CodeSniffer & PHPDoc Compliance (CI Passing):**
