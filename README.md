@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.4.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.4.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,14 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.4.5 (2026-09-25)
+- **Zero-Tolerance Moodle CodeSniffer & PHPDoc Compliance (CI Passing):**
+  - **Resolved All Line Length Violations**: Wrapped all lines exceeding 132/180 characters in `report.php` and `classes/evaluator.php` to strictly comply with Moodle CodeSniffer standards.
+  - **Fixed PHPDoc Completeness**: Added missing `@param array $audiodata` documentation for `evaluator::submit_evaluation()`.
+  - **Standardized Array Syntax**: Converted legacy `array()` syntax to modern short syntax `[]` in `lib.php:quiz_oralexam_pluginfile()`.
+  - **Variable Naming Standard**: Eliminated underscores from all local variables in `report.php:format_competency_badge()` (`$labelar`, `$labelen`, `$isar`, `$displaytext`).
+  - **Inline Comment Formatting**: Fixed terminal punctuation in inline comments.
 
 ### v1.4.4 (2026-09-22)
 - **Resolved Moodle Plugins Directory Approval Review Feedback:**

@@ -379,7 +379,7 @@ class quiz_oralexam_report extends quiz_default_report {
             $targetattemptid = (int)$latest->id;
             $attemptlabel = '#' . $latest->attempt . ' (' . round($latest->sumgrades, 1) . ' pts)';
         } else {
-            // Brand new attempt #1
+            // Brand new attempt #1.
             $targetattemptid = 0;
             $attemptlabel = get_string('recordingattempt', 'quiz_oralexam', 1);
             $iscreatingnew = true;
@@ -473,10 +473,35 @@ class quiz_oralexam_report extends quiz_default_report {
         echo '<i class="fa fa-sliders text-primary mr-1"></i> <strong>' . get_string('selectmodel', 'quiz_oralexam') . '</strong>';
         echo '</div>';
         echo '<div class="model-buttons-group">';
-        echo '<button type="button" class="btn-model-select active" data-model="all" onclick="filterOralModel(\'all\')"><i class="fa fa-th-large mr-1"></i> ' . get_string('allmodels', 'quiz_oralexam') . '</button>';
-        echo '<button type="button" class="btn-model-select model-a" data-model="a" onclick="filterOralModel(\'a\')"><i class="fa fa-bookmark mr-1"></i> ' . get_string('modela', 'quiz_oralexam') . '</button>';
-        echo '<button type="button" class="btn-model-select model-b" data-model="b" onclick="filterOralModel(\'b\')"><i class="fa fa-bookmark mr-1"></i> ' . get_string('modelb', 'quiz_oralexam') . '</button>';
-        echo '<button type="button" class="btn-model-select model-c" data-model="c" onclick="filterOralModel(\'c\')"><i class="fa fa-bookmark mr-1"></i> ' . get_string('modelc', 'quiz_oralexam') . '</button>';
+        $btnall = '<i class="fa fa-th-large mr-1"></i> ' . get_string('allmodels', 'quiz_oralexam');
+        $btna = '<i class="fa fa-bookmark mr-1"></i> ' . get_string('modela', 'quiz_oralexam');
+        $btnb = '<i class="fa fa-bookmark mr-1"></i> ' . get_string('modelb', 'quiz_oralexam');
+        $btnc = '<i class="fa fa-bookmark mr-1"></i> ' . get_string('modelc', 'quiz_oralexam');
+
+        echo html_writer::tag('button', $btnall, [
+            'type' => 'button',
+            'class' => 'btn-model-select active',
+            'data-model' => 'all',
+            'onclick' => "filterOralModel('all')",
+        ]);
+        echo html_writer::tag('button', $btna, [
+            'type' => 'button',
+            'class' => 'btn-model-select model-a',
+            'data-model' => 'a',
+            'onclick' => "filterOralModel('a')",
+        ]);
+        echo html_writer::tag('button', $btnb, [
+            'type' => 'button',
+            'class' => 'btn-model-select model-b',
+            'data-model' => 'b',
+            'onclick' => "filterOralModel('b')",
+        ]);
+        echo html_writer::tag('button', $btnc, [
+            'type' => 'button',
+            'class' => 'btn-model-select model-c',
+            'data-model' => 'c',
+            'onclick' => "filterOralModel('c')",
+        ]);
         echo '</div>';
         echo html_writer::end_div();
 
@@ -500,13 +525,16 @@ class quiz_oralexam_report extends quiz_default_report {
             if (!empty($q->competencies)) {
                 foreach ($q->competencies as $comp) {
                     $binfo = self::format_competency_badge($comp);
-                    echo html_writer::start_span('comp-header-badge ' . $binfo['class'], ['title' => s($comp->description ?: $binfo['text'])]);
+                    $badgetitle = s($comp->description ?: $binfo['text']);
+                    echo html_writer::start_span('comp-header-badge ' . $binfo['class'], ['title' => $badgetitle]);
                     echo html_writer::tag('i', '', ['class' => 'fa ' . $binfo['icon'] . ' mr-1']);
                     echo html_writer::tag('span', $binfo['text'], ['class' => 'comp-badge-text']);
                     echo html_writer::end_span();
                 }
             } else {
-                echo html_writer::tag('span', get_string('nocompetency', 'quiz_oralexam'), ['class' => 'comp-header-badge comp-badge-none text-muted']);
+                echo html_writer::tag('span', get_string('nocompetency', 'quiz_oralexam'), [
+                    'class' => 'comp-header-badge comp-badge-none text-muted',
+                ]);
             }
             echo html_writer::end_div(); // End Header Left.
 
@@ -520,7 +548,8 @@ class quiz_oralexam_report extends quiz_default_report {
             // Audio Recording / Playback Section.
             echo html_writer::start_div('qcard-audio-section', ['id' => 'audio-sec-' . $slot]);
             echo html_writer::start_div('audio-section-header');
-            echo html_writer::tag('span', '<i class="fa fa-microphone text-primary mr-1"></i> ' . get_string('recordaudio', 'quiz_oralexam'));
+            $recicon = '<i class="fa fa-microphone text-primary mr-1"></i> ';
+            echo html_writer::tag('span', $recicon . get_string('recordaudio', 'quiz_oralexam'));
             echo html_writer::end_div();
 
             echo html_writer::start_div('audio-controls-row');
@@ -530,13 +559,17 @@ class quiz_oralexam_report extends quiz_default_report {
                 echo '</div>';
             }
 
+            $recdot = '<i class="fa fa-circle text-danger mr-1" id="rec-dot-' . $slot . '"></i> ';
+            $recspan = '<span id="rec-label-' . $slot . '">' . get_string('recordaudio', 'quiz_oralexam') . '</span>';
             echo '<button type="button" class="btn-record-audio" id="rec-btn-' . $slot . '" onclick="toggleRecord(' . $slot . ')">';
-            echo '<i class="fa fa-circle text-danger mr-1" id="rec-dot-' . $slot . '"></i> <span id="rec-label-' . $slot . '">' . get_string('recordaudio', 'quiz_oralexam') . '</span>';
+            echo $recdot . $recspan;
             echo '</button>';
             echo '<div class="audio-live-timer" id="timer-' . $slot . '">🔴 <span id="time-val-' . $slot . '">00:00</span></div>';
             echo '<div class="audio-player-wrap new-preview" id="preview-wrap-' . $slot . '" style="display:none;">';
             echo '  <audio id="audio-preview-' . $slot . '" controls></audio>';
-            echo '  <button type="button" class="btn-discard-audio" onclick="discardAudio(' . $slot . ')"><i class="fa fa-trash mr-1"></i> ' . get_string('discardaudio', 'quiz_oralexam') . '</button>';
+            echo '  <button type="button" class="btn-discard-audio" onclick="discardAudio(' . $slot . ')">';
+            echo '    <i class="fa fa-trash mr-1"></i> ' . get_string('discardaudio', 'quiz_oralexam');
+            echo '  </button>';
             echo '</div>';
             echo '<input type="hidden" name="audiodata[' . $slot . ']" id="audiodata-' . $slot . '" value="">';
             echo html_writer::end_div(); // End audio-controls-row.
@@ -609,7 +642,9 @@ class quiz_oralexam_report extends quiz_default_report {
 
         // General Examiner Remarks Card.
         echo html_writer::start_div('oralexam-general-feedback-card mb-4');
-        echo '<div class="card-header-remarks mb-2"><i class="fa fa-commenting-o mr-1 text-primary"></i> <strong>' . get_string('generalfeedback', 'quiz_oralexam') . '</strong></div>';
+        $fbicon = '<i class="fa fa-commenting-o mr-1 text-primary"></i> <strong>' .
+            get_string('generalfeedback', 'quiz_oralexam') . '</strong>';
+        echo '<div class="card-header-remarks mb-2">' . $fbicon . '</div>';
         echo html_writer::tag('textarea', '', [
             'name'        => 'generalfeedback',
             'id'          => 'oralGeneralFeedback',
@@ -660,38 +695,38 @@ class quiz_oralexam_report extends quiz_default_report {
         $lower = strtolower($clean);
         $icon = 'fa-tag';
         $class = 'comp-badge-generic';
-        $label_ar = $clean;
-        $label_en = $clean;
+        $labelar = $clean;
+        $labelen = $clean;
 
         if (strpos($lower, 'operat') !== false) {
             $icon = 'fa-cogs';
             $class = 'comp-badge-operation';
-            $label_ar = 'التشغيل';
-            $label_en = 'Operation';
+            $labelar = 'التشغيل';
+            $labelen = 'Operation';
         } else if (strpos($lower, 'trouble') !== false) {
             $icon = 'fa-wrench';
             $class = 'comp-badge-troubleshooting';
-            $label_ar = 'استكشاف الأعطال';
-            $label_en = 'Troubleshooting';
+            $labelar = 'استكشاف الأعطال';
+            $labelen = 'Troubleshooting';
         } else if (strpos($lower, 'inspect') !== false || strpos($lower, 'test') !== false) {
             $icon = 'fa-check-square-o';
             $class = 'comp-badge-inspection';
-            $label_ar = 'الفحص والتفتيش';
-            $label_en = 'Testing & Inspection';
+            $labelar = 'الفحص والتفتيش';
+            $labelen = 'Testing & Inspection';
         } else if (strpos($lower, 'safe') !== false) {
             $icon = 'fa-shield';
             $class = 'comp-badge-safety';
-            $label_ar = 'السلامة المهنية';
-            $label_en = 'Safety';
+            $labelar = 'السلامة المهنية';
+            $labelen = 'Safety';
         }
 
-        $is_ar = (current_language() === 'ar');
-        $display_text = $is_ar ? "الجدارة: {$label_ar} ({$label_en})" : "Competency: {$label_en} ({$label_ar})";
+        $isar = (current_language() === 'ar');
+        $displaytext = $isar ? "الجدارة: {$labelar} ({$labelen})" : "Competency: {$labelen} ({$labelar})";
 
         return [
             'icon'  => $icon,
             'class' => $class,
-            'text'  => $display_text,
+            'text'  => $displaytext,
             'raw'   => $clean,
         ];
     }
@@ -711,7 +746,8 @@ class quiz_oralexam_report extends quiz_default_report {
         $resultsurl = new \moodle_url('/mod/quiz/report.php', ['id' => $cm->id, 'mode' => 'overview']);
 
         echo \html_writer::start_div('oralexam-container');
-        echo '<div class="card shadow-sm border-0 my-4" style="border-radius: 14px; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0 !important;">';
+        $cardstyle = 'border-radius: 14px; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0 !important;';
+        echo '<div class="card shadow-sm border-0 my-4" style="' . $cardstyle . '">';
         echo '  <div class="card-body p-4 p-md-5 text-center" style="max-width: 820px; margin: 0 auto;">';
         echo '    <div class="mb-4 d-inline-flex align-items-center justify-content-center" ' .
             'style="width: 84px; height: 84px; border-radius: 50%; background: #eff6ff; color: #0284c7;">';
@@ -732,12 +768,18 @@ class quiz_oralexam_report extends quiz_default_report {
 
         echo '    <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-2">';
         if ($canedit) {
-            echo '      <a href="' . $settingsurl->out(false) . '" class="btn btn-primary btn-lg font-weight-bold shadow-sm px-4 m-1">';
-            echo '        <i class="fa fa-cog mr-2"></i> ' . get_string('gotoquizsettings', 'quiz_oralexam');
+            $setbtn = '<i class="fa fa-cog mr-2"></i> ' . get_string('gotoquizsettings', 'quiz_oralexam');
+            $setlink = '<a href="' . $settingsurl->out(false) . '" ' .
+                'class="btn btn-primary btn-lg font-weight-bold shadow-sm px-4 m-1">';
+            echo '      ' . $setlink;
+            echo '        ' . $setbtn;
             echo '      </a>';
         }
-        echo '      <a href="' . $resultsurl->out(false) . '" class="btn btn-outline-secondary btn-lg font-weight-bold px-4 m-1">';
-        echo '        <i class="fa fa-list-alt mr-2"></i> ' . get_string('viewquizresults', 'quiz_oralexam');
+        $resbtn = '<i class="fa fa-list-alt mr-2"></i> ' . get_string('viewquizresults', 'quiz_oralexam');
+        $reslink = '<a href="' . $resultsurl->out(false) . '" ' .
+            'class="btn btn-outline-secondary btn-lg font-weight-bold px-4 m-1">';
+        echo '      ' . $reslink;
+        echo '        ' . $resbtn;
         echo '      </a>';
         echo '    </div>';
         echo '  </div>';

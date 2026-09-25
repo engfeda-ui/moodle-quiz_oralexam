@@ -225,7 +225,14 @@ class evaluator {
                     $context = \context_module::instance($cm->id);
                     $fs = get_file_storage();
                     foreach (['webm', 'mp4', 'ogg'] as $ext) {
-                        $audiofile = $fs->get_file($context->id, 'quiz_oralexam', 'audio_recordings', $attemptid, '/', 'slot_' . $slotno . '.' . $ext);
+                        $audiofile = $fs->get_file(
+                            $context->id,
+                            'quiz_oralexam',
+                            'audio_recordings',
+                            $attemptid,
+                            '/',
+                            'slot_' . $slotno . '.' . $ext
+                        );
                         if ($audiofile && !$audiofile->is_directory()) {
                             $hasaudio = true;
                             $audiourl = \moodle_url::make_pluginfile_url(
@@ -317,6 +324,7 @@ class evaluator {
      * @param array $comments Array of comments indexed by slot.
      * @param string $generalfeedback Overall examiner feedback notes.
      * @param int $existingattemptid Optional existing attempt ID to update.
+     * @param array $audiodata Optional audio recordings data indexed by slot.
      * @return \stdClass The finalized attempt record.
      */
     public static function submit_evaluation(
@@ -416,7 +424,14 @@ class evaluator {
                 if (!empty($binary)) {
                     // Clean previous recording with any supported extension.
                     foreach (['webm', 'mp4', 'ogg'] as $e) {
-                        $existingfile = $fs->get_file($context->id, 'quiz_oralexam', 'audio_recordings', $attempt->id, '/', 'slot_' . $slotno . '.' . $e);
+                        $existingfile = $fs->get_file(
+                            $context->id,
+                            'quiz_oralexam',
+                            'audio_recordings',
+                            $attempt->id,
+                            '/',
+                            'slot_' . $slotno . '.' . $e
+                        );
                         if ($existingfile) {
                             $existingfile->delete();
                         }
@@ -436,7 +451,14 @@ class evaluator {
             // If an audio recording exists for this slot & attempt, embed it in feedback for Moodle review.php view.
             $audiofile = null;
             foreach (['webm', 'mp4', 'ogg'] as $e) {
-                $f = $fs->get_file($context->id, 'quiz_oralexam', 'audio_recordings', $attempt->id, '/', 'slot_' . $slotno . '.' . $e);
+                $f = $fs->get_file(
+                    $context->id,
+                    'quiz_oralexam',
+                    'audio_recordings',
+                    $attempt->id,
+                    '/',
+                    'slot_' . $slotno . '.' . $e
+                );
                 if ($f && !$f->is_directory()) {
                     $audiofile = $f;
                     break;
@@ -552,12 +574,19 @@ class evaluator {
      */
     public static function build_audio_player_html(string $audiourl): string {
         $audiolabel = get_string('savedaudio', 'quiz_oralexam');
+        $cardstyle = 'margin: 10px 0 6px 0; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); ' .
+            'border: 1.5px solid #86efac; border-radius: 10px; padding: 10px 14px; ' .
+            'box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 440px;';
+        $titlestyle = 'font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 6px; ' .
+            'display: flex; align-items: center; gap: 6px;';
+        $audiostyle = 'width: 100%; height: 38px; border-radius: 6px;';
+
         return "\n<!-- ORALEXAM_AUDIO_START -->\n" .
-            '<div class="oralexam-review-player" style="margin: 10px 0 6px 0; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 440px;">' .
-            '<div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">' .
+            '<div class="oralexam-review-player" style="' . $cardstyle . '">' .
+            '<div style="' . $titlestyle . '">' .
             '<span style="font-size: 15px;">🎙️</span> ' . s($audiolabel) .
             '</div>' .
-            '<audio controls preload="metadata" src="' . $audiourl . '" style="width: 100%; height: 38px; border-radius: 6px;"></audio>' .
+            '<audio controls preload="metadata" src="' . $audiourl . '" style="' . $audiostyle . '"></audio>' .
             "</div>\n" .
             "<!-- ORALEXAM_AUDIO_END -->";
     }

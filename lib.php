@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param array $options Additional options.
  * @return bool False if file not found or access denied.
  */
-function quiz_oralexam_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
+function quiz_oralexam_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $DB, $USER;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
