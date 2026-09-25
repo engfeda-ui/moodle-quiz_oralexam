@@ -1,0 +1,268 @@
+{{!
+    Evaluation sheet template for a single candidate in the Oral Exam report.
+
+    @template quiz_oralexam/evaluation_sheet
+
+    @copyright 2026 Mahmoud Salem
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    - avatar: HTML user picture
+    - fullname: string
+    - idnumber: string
+    - department: string (optional)
+    - academicidlabel: string
+    - attemptlabel: string
+    - hasattempts: bool
+    - attempttabs: array of {url, label, score, active}
+    - newattempturl: string
+    - iscreatingnew: bool
+    - recordnewattemptlabel: string
+    - actionurl: string
+    - cmid: int
+    - sesskey: string
+    - studentid: int
+    - group: int
+    - targetattemptid: int
+    - isnewattempt: int
+    - selectmodellabel: string
+    - allmodelslabel: string
+    - modelalabel: string
+    - modelblabel: string
+    - modelclabel: string
+    - questions: array of question objects
+    - generalfeedbacklabel: string
+    - generalfeedbackplaceholder: string
+    - computedtotallabel: string
+    - sumgrades: number
+    - canevaluate: bool
+    - saveandfinishlabel: string
+    - zerostr: string
+    - halfstr: string
+    - fullstr: string
+    - quickscorelabel: string
+    - examinernotes: string
+    - recordaudiolabel: string
+    - nocompetencylabel: string
+}}
+<div class="oralexam-sheet-card">
+
+    {{! Student Header Bar }}
+    <div class="student-header-bar">
+        <div class="student-header-main">
+            <div class="student-avatar">{{{avatar}}}</div>
+            <div class="student-details">
+                <h2 class="student-fullname">{{fullname}}</h2>
+                <span class="badge badge-secondary mr-2">{{academicidlabel}}: {{#idnumber}}{{idnumber}}{{/idnumber}}{{^idnumber}}—{{/idnumber}}</span>
+                {{#department}}<span class="badge badge-info mr-2">{{department}}</span>{{/department}}
+            </div>
+        </div>
+        <div class="student-header-actions text-right">
+            <span class="badge badge-primary p-2 font-weight-bold shadow-sm" style="font-size: 0.95rem;">
+                <i class="fa fa-pencil mr-1"></i> {{attemptlabel}}
+            </span>
+        </div>
+    </div>
+
+    {{! Multi-Attempt Tabs }}
+    {{#hasattempts}}
+    <div class="oralexam-attempt-nav-bar">
+        <ul class="oralexam-attempt-tabs-list">
+            {{#attempttabs}}
+            <li class="attempt-tab-item{{#active}} active{{/active}}">
+                <a href="{{url}}">
+                    <i class="fa fa-history mr-1"></i> {{label}}
+                    <span class="badge-score">{{score}} pts</span>
+                </a>
+            </li>
+            {{/attempttabs}}
+        </ul>
+        <a href="{{newattempturl}}" class="btn-new-attempt{{#iscreatingnew}} active{{/iscreatingnew}}">
+            <i class="fa fa-plus-circle mr-1"></i> {{recordnewattemptlabel}}
+        </a>
+    </div>
+    {{/hasattempts}}
+
+    {{! Evaluation Form }}
+    <form method="POST" action="{{actionurl}}" id="oralExamForm" data-action="oral-exam-form">
+        <input type="hidden" name="id"         value="{{cmid}}" />
+        <input type="hidden" name="mode"       value="oralexam" />
+        <input type="hidden" name="action"     value="submit_eval" />
+        <input type="hidden" name="sesskey"    value="{{sesskey}}" />
+        <input type="hidden" name="student"    value="{{studentid}}" />
+        <input type="hidden" name="group"      value="{{group}}" />
+        <input type="hidden" name="attemptid"  value="{{targetattemptid}}" />
+        <input type="hidden" name="newattempt" value="{{isnewattempt}}" />
+        <input type="hidden" name="evaluation_started_at" value="{{evaluationstartedat}}" />
+
+        {{! Model Selector Bar }}
+        <div class="oralexam-model-selector-bar mb-3">
+            <div class="model-selector-info">
+                <i class="fa fa-sliders text-primary mr-1"></i>
+                <strong>{{selectmodellabel}}</strong>
+            </div>
+            <div class="model-buttons-group">
+                <button type="button" class="btn-model-select active" data-model="all"
+                        data-action="filter-model">
+                    <i class="fa fa-th-large mr-1"></i> {{allmodelslabel}}
+                </button>
+                <button type="button" class="btn-model-select model-a" data-model="a"
+                        data-action="filter-model">
+                    <i class="fa fa-bookmark mr-1"></i> {{modelalabel}}
+                </button>
+                <button type="button" class="btn-model-select model-b" data-model="b"
+                        data-action="filter-model">
+                    <i class="fa fa-bookmark mr-1"></i> {{modelblabel}}
+                </button>
+                <button type="button" class="btn-model-select model-c" data-model="c"
+                        data-action="filter-model">
+                    <i class="fa fa-bookmark mr-1"></i> {{modelclabel}}
+                </button>
+            </div>
+        </div>
+
+        {{! Questions Deck }}
+        <div class="oralexam-questions-deck" id="oralQuestionsDecks">
+            {{#questions}}
+            <div class="oralexam-qcard" id="qcard-{{slot}}">
+
+                {{! Question Header }}
+                <div class="qcard-header">
+                    <div class="qcard-header-left">
+                        <span class="qcard-slot-badge">{{questionnolabel}}</span>
+                        {{#competencies}}
+                        <span class="comp-header-badge {{badgeclass}}" title="{{badgetitle}}">
+                            <i class="fa {{badgeicon}} mr-1"></i>
+                            <span class="comp-badge-text">{{badgetext}}</span>
+                        </span>
+                        {{/competencies}}
+                        {{^competencies}}
+                        <span class="comp-header-badge comp-badge-none text-muted">{{nocompetencylabel}}</span>
+                        {{/competencies}}
+                    </div>
+                    <span class="qcard-maxmark-badge">{{maxmarklabel}}</span>
+                </div>
+
+                {{! Question Body }}
+                <div class="qcard-body">
+                    <div class="qcard-questiontext" dir="auto">{{{questiontext}}}</div>
+
+                    {{! Audio Section }}
+                    <div class="qcard-audio-section" id="audio-sec-{{slot}}">
+                        <div class="audio-section-header">
+                            <span><i class="fa fa-microphone text-primary mr-1"></i> {{recordaudiolabel}}</span>
+                        </div>
+                        <div class="audio-controls-row">
+                            {{#hasaudio}}
+                            <div class="audio-player-wrap existing-audio" id="existing-audio-{{slot}}">
+                                <audio controls preload="none" src="{{audiourl}}"></audio>
+                            </div>
+                            {{/hasaudio}}
+                            <button type="button"
+                                    class="btn-record-audio"
+                                    id="rec-btn-{{slot}}"
+                                    data-slot="{{slot}}"
+                                    data-action="toggle-record">
+                                <i class="fa fa-circle text-danger mr-1" id="rec-dot-{{slot}}"></i>
+                                <span id="rec-label-{{slot}}">{{recordaudiolabel}}</span>
+                            </button>
+                            <div class="audio-live-timer" id="timer-{{slot}}">
+                                🔴 <span id="time-val-{{slot}}">00:00</span>
+                            </div>
+                            <div class="audio-player-wrap new-preview" id="preview-wrap-{{slot}}" style="display:none;">
+                                <audio id="audio-preview-{{slot}}" controls></audio>
+                                <button type="button"
+                                        class="btn-discard-audio"
+                                        data-slot="{{slot}}"
+                                        data-action="discard-audio">
+                                    <i class="fa fa-trash mr-1"></i> {{discardaudiolabel}}
+                                </button>
+                            </div>
+                            <input type="hidden"
+                                   name="audiodata[{{slot}}]"
+                                   id="audiodata-{{slot}}"
+                                   value="" />
+                        </div>
+                    </div>
+
+                    {{! Scoring Bar }}
+                    <div class="qcard-scoring-bar">
+                        <span class="scoring-label font-weight-bold mr-2">{{quickscorelabel}}</span>
+                        <div class="quick-btn-group">
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm quick-btn"
+                                    data-slot="{{slot}}"
+                                    data-val="0"
+                                    data-action="quick-mark">{{zerostr}}</button>
+                            <button type="button"
+                                    class="btn btn-outline-warning btn-sm quick-btn"
+                                    data-slot="{{slot}}"
+                                    data-val="{{halfmark}}"
+                                    data-action="quick-mark">{{halfstr}} ({{halfmark}})</button>
+                            <button type="button"
+                                    class="btn btn-outline-success btn-sm quick-btn"
+                                    data-slot="{{slot}}"
+                                    data-val="{{maxmark}}"
+                                    data-action="quick-mark">{{fullstr}} ({{maxmark}})</button>
+                        </div>
+                        <div class="mark-input-wrapper">
+                            <input type="number"
+                                   step="0.1"
+                                   min="0"
+                                   max="{{maxmark}}"
+                                   name="marks[{{slot}}]"
+                                   id="mark_{{slot}}"
+                                   value="{{currentmark}}"
+                                   class="form-control mark-input text-center font-weight-bold"
+                                   placeholder="0.0"
+                                   data-action="mark-input" />
+                            <span class="mark-denom">/ {{maxmark}}</span>
+                        </div>
+                    </div>
+
+                    {{! Examiner Notes }}
+                    <div class="qcard-comment-wrapper mt-2">
+                        <input type="text"
+                               name="feedback[{{slot}}]"
+                               value="{{currentfeedback}}"
+                               placeholder="{{examinernotes}}"
+                               class="form-control form-control-sm text-muted"
+                               dir="auto" />
+                    </div>
+                </div>{{! End qcard-body }}
+            </div>{{! End qcard }}
+            {{/questions}}
+        </div>{{! End Questions Deck }}
+
+        {{! General Feedback Card }}
+        <div class="oralexam-general-feedback-card mb-4">
+            <div class="card-header-remarks mb-2">
+                <i class="fa fa-commenting-o mr-1 text-primary"></i>
+                <strong>{{generalfeedbacklabel}}</strong>
+            </div>
+            <textarea name="generalfeedback"
+                      id="oralGeneralFeedback"
+                      rows="3"
+                      class="form-control"
+                      placeholder="{{generalfeedbackplaceholder}}"
+                      dir="auto"></textarea>
+        </div>
+
+        {{! Sticky Footer }}
+        <div class="oralexam-sticky-footer">
+            <div class="sticky-footer-content">
+                <div class="live-total-box">
+                    <span class="total-label">{{computedtotallabel}}</span>
+                    <span id="liveTotalScore" class="total-score-value">0.0</span>
+                    <span class="total-denom">/ {{sumgrades}}</span>
+                </div>
+                {{#canevaluate}}
+                <button type="submit"
+                        class="btn btn-primary btn-lg shadow-sm"
+                        id="submitOralExamBtn">{{saveandfinishlabel}}</button>
+                {{/canevaluate}}
+            </div>
+        </div>
+
+    </form>
+</div>{{! End Sheet Card }}

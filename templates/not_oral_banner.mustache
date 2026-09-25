@@ -1,0 +1,47 @@
+{{!
+    Advisory banner template when quiz is not configured as an oral exam.
+
+    @template quiz_oralexam/not_oral_banner
+
+    @copyright 2026 Mahmoud Salem
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    - canedit: bool
+    - settingsurl: string
+    - resultsurl: string
+    - hasaccessrule: bool
+    - missingrulemsg: string
+    - titlemsg: string
+    - descmsg: string
+    - settingslabel: string
+    - resultslabel: string
+}}
+<div class="oralexam-container">
+    <div class="card shadow-sm border-0 my-4"
+         style="border-radius:14px;overflow:hidden;background:#ffffff;border:1px solid #e2e8f0!important;">
+        <div class="card-body p-4 p-md-5 text-center" style="max-width:820px;margin:0 auto;">
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center"
+                 style="width:84px;height:84px;border-radius:50%;background:#eff6ff;color:#0284c7;">
+                <i class="fa fa-microphone-slash fa-3x"></i>
+            </div>
+            <h3 class="font-weight-bold mb-3 text-dark">{{titlemsg}}</h3>
+            <p class="text-muted lead mb-4" style="font-size:1.05rem;line-height:1.8;">{{descmsg}}</p>
+            {{^hasaccessrule}}
+            <div class="alert alert-warning mb-4 text-center font-weight-bold" style="border-radius:8px;">
+                <i class="fa fa-exclamation-triangle mr-2"></i> {{missingrulemsg}}
+            </div>
+            {{/hasaccessrule}}
+            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-2">
+                {{#canedit}}
+                <a href="{{settingsurl}}" class="btn btn-primary btn-lg font-weight-bold shadow-sm px-4 m-1">
+                    <i class="fa fa-cog mr-2"></i> {{settingslabel}}
+                </a>
+                {{/canedit}}
+                <a href="{{resultsurl}}" class="btn btn-outline-secondary btn-lg font-weight-bold px-4 m-1">
+                    <i class="fa fa-list-alt mr-2"></i> {{resultslabel}}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

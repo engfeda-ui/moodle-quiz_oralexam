@@ -1,0 +1,121 @@
+{{!
+    Main layout template for the Oral Exam Evaluator report.
+
+    @template quiz_oralexam/report_main
+
+    @copyright 2026 Mahmoud Salem
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    - stats: array of stat card objects (title, value, class, icon)
+    - groupsmenu: HTML output of groups_print_activity_menu
+    - viewresultsurl: URL string for quiz overview report
+    - viewresultslabel: Localised string for results button
+    - nocandidates: boolean, true if no candidates enrolled
+    - nocandidatesmsg: localised no-students message
+    - searchplaceholder: localised search placeholder
+    - candidates: array of candidate objects
+    - hasactivecand: boolean
+    - emptyicon: fa icon class string
+    - selectstudentlabel: localised string
+    - clickprompt: localised string
+    - evaluationsheet: rendered HTML of evaluation sheet (when hasactivecand)
+    - selectstudentlabel: string
+}}
+<div class="oralexam-container">
+
+    {{! Stats Grid }}
+    <div class="oralexam-stats-grid">
+        {{#stats}}
+        <div class="oralexam-stat-card {{class}}">
+            <i class="fa {{icon}} stat-icon"></i>
+            <div class="stat-card-text">
+                <span class="stat-title">{{title}}</span>
+                <span class="stat-value">{{value}}</span>
+            </div>
+        </div>
+        {{/stats}}
+    </div>
+
+    {{! Controls Bar }}
+    <div class="oralexam-controls-card">
+        <div class="controls-group-select">
+            {{{groupsmenu}}}
+        </div>
+        <div class="controls-actions">
+            <a href="{{viewresultsurl}}" class="btn btn-outline-secondary btn-sm font-weight-bold" target="_blank">
+                <i class="fa fa-list-alt mr-1"></i> {{viewresultslabel}}
+            </a>
+        </div>
+    </div>
+
+    {{! Main Two-Column Grid }}
+    <div class="oralexam-main-grid">
+
+        {{! Left Sidebar: Student Selector }}
+        <div class="oralexam-sidebar">
+            <h3 class="oralexam-section-title">{{selectstudentlabel}}</h3>
+
+            {{#nocandidates}}
+            <div class="alert alert-info">{{nocandidatesmsg}}</div>
+            {{/nocandidates}}
+
+            {{^nocandidates}}
+            <div class="oralexam-search-box">
+                <input type="text"
+                       id="candidateSearch"
+                       placeholder="{{searchplaceholder}}"
+                       class="form-control"
+                       data-action="search-candidates" />
+            </div>
+            <ul class="oralexam-candidate-list" id="candidateList">
+                {{#candidates}}
+                <li class="oralexam-candidate-item{{#active}} active{{/active}}"
+                    data-name="{{dataname}}"
+                    data-action="select-candidate"
+                    data-url="{{url}}">
+                    <a href="{{url}}" class="candidate-link">
+                        <div class="cand-avatar-wrap">{{{avatar}}}</div>
+                        <div class="cand-main-info">
+                            <span class="cand-name">{{fullname}}</span>
+                            {{#idnumber}}<span class="cand-idnumber-pill">{{idnumber}}</span>{{/idnumber}}
+                        </div>
+                        <div class="cand-meta-box">
+                            {{#evaluated}}
+                            <div class="cand-status-pill status-done" title="{{statuslabel}}: {{scorebadge}}">
+                                <i class="fa fa-check-circle mr-1"></i>
+                                <span class="cand-score-val">{{scorebadge}}</span>
+                            </div>
+                            {{/evaluated}}
+                            {{^evaluated}}
+                            <div class="cand-status-pill status-wait status-icon-only"
+                                 title="{{statuslabel}}"
+                                 aria-label="{{statuslabel}}">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            {{/evaluated}}
+                            <i class="fa fa-angle-left cand-chevron rtl-flip"></i>
+                        </div>
+                    </a>
+                </li>
+                {{/candidates}}
+            </ul>
+            {{/nocandidates}}
+        </div>
+
+        {{! Right Content: Evaluation Sheet or Empty State }}
+        <div class="oralexam-content">
+            {{#hasactivecand}}
+            {{{evaluationsheet}}}
+            {{/hasactivecand}}
+            {{^hasactivecand}}
+            <div class="oralexam-empty-state">
+                <i class="fa fa-user-circle-o fa-5x text-muted"></i>
+                <h3>{{selectstudentlabel}}</h3>
+                <p class="text-muted">{{clickprompt}}</p>
+            </div>
+            {{/hasactivecand}}
+        </div>
+
+    </div>{{! End Main Grid }}
+</div>{{! End Container }}
