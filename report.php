@@ -35,7 +35,6 @@ require_once(__DIR__ . '/classes/evaluator.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quiz_oralexam_report extends quiz_default_report {
-
     /**
      * Display the oral exam evaluation interface.
      *
@@ -235,7 +234,13 @@ class quiz_oralexam_report extends quiz_default_report {
             if ($activecand) {
                 $hasactivecand   = true;
                 $evaluationsheet = $this->build_evaluation_sheet_template(
-                    $quiz, $cm, $course, $activecand, $baseurl, $canevaluate, $isnewattempt
+                    $quiz,
+                    $cm,
+                    $course,
+                    $activecand,
+                    $baseurl,
+                    $canevaluate,
+                    $isnewattempt
                 );
             }
         }
@@ -273,7 +278,8 @@ class quiz_oralexam_report extends quiz_default_report {
             ],
             'groupsmenu'       => $groupsmenu,
             'viewresultsurl'   => (new moodle_url(
-                '/mod/quiz/report.php', ['id' => $cm->id, 'mode' => 'overview']
+                '/mod/quiz/report.php',
+                ['id' => $cm->id, 'mode' => 'overview']
             ))->out(false),
             'viewresultslabel' => get_string('viewquizresults', 'quiz_oralexam'),
             'nocandidates'     => empty($candidates),
