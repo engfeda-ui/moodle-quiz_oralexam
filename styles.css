@@ -897,21 +897,24 @@
 }
 
 /* Dynamic Model Filtering in Questions Deck */
-.oralexam-questions-deck.filter-model-a .oral-model:not(.oral-model-a) {
+.oralexam-questions-deck.filter-model-a .oral-model:not(.oral-model-a):not(.oral-model-A):not([data-model="a"]):not([data-model="A"]) {
     display: none !important;
 }
 
-.oralexam-questions-deck.filter-model-b .oral-model:not(.oral-model-b) {
+.oralexam-questions-deck.filter-model-b .oral-model:not(.oral-model-b):not(.oral-model-B):not([data-model="b"]):not([data-model="B"]) {
     display: none !important;
 }
 
-.oralexam-questions-deck.filter-model-c .oral-model:not(.oral-model-c) {
+.oralexam-questions-deck.filter-model-c .oral-model:not(.oral-model-c):not(.oral-model-C):not([data-model="c"]):not([data-model="C"]) {
     display: none !important;
 }
 
 .oralexam-questions-deck.filter-model-a .oral-model-a,
+.oralexam-questions-deck.filter-model-a .oral-model-A,
 .oralexam-questions-deck.filter-model-b .oral-model-b,
-.oralexam-questions-deck.filter-model-c .oral-model-c {
+.oralexam-questions-deck.filter-model-b .oral-model-B,
+.oralexam-questions-deck.filter-model-c .oral-model-c,
+.oralexam-questions-deck.filter-model-c .oral-model-C {
     box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.08) !important;
     border-right-width: 6px !important;
 }

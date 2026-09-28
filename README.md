@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.5.2-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.3-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,13 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.3 (2026-09-28)
+- **AMD Module Production Build & Exam Model Filter Restoration:**
+  - **Compiled AMD Production Bundle (`amd/build/evaluator.min.js`)**: Generated and packaged the minified AMD production bundle and source map (`evaluator.min.js`, `evaluator.min.js.map`). In production Moodle environments, missing build artifacts cause 404 handler aborts that prevented the `quiz_oralexam/evaluator` module and its DOM event delegation from initializing.
+  - **Restored Exam Model Filter Switcher**: Resolved the issue where clicking Model filter buttons (`Model (A)`, `Model (B)`, `Model (C)`, `All Models`) did not isolate questions. Verified that selecting any model variant instantly filters question decks in real time.
+  - **Hardened Model Filter CSS & Selectors**: Enhanced `.oralexam-questions-deck.filter-model-*` CSS rules to seamlessly support uppercase model class variations (`.oral-model-A`, `.oral-model-B`, `.oral-model-C`) and custom `[data-model]` attributes.
+  - **Normalized Model Filter Value Sanitization**: Normalized model attribute parsing in `amd/src/evaluator.js` with `.toLowerCase()` to ensure uniform matching across different question bank formats.
 
 ### v1.5.2 (2026-09-26)
 - **Official Moodle Plugins Directory & UI Icons (`pix/`):**

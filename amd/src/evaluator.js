@@ -300,6 +300,10 @@ define(['core/str'], function(Str) {
      */
     function filterOralModel(btn) {
         var model = btn.getAttribute('data-model');
+        if (!model) {
+            return;
+        }
+        model = model.toLowerCase();
 
         document.querySelectorAll('.btn-model-select').forEach(function(b) {
             b.classList.remove('active');
