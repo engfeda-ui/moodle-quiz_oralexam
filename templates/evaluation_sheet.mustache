@@ -85,12 +85,18 @@
 
     <form method="POST" action="{{actionurl}}" id="oralExamForm" data-action="oral-exam-form"
           enctype="multipart/form-data"
+          data-quiz-id="{{cmid}}"
+          data-student-id="{{studentid}}"
+          data-attempt-id="{{targetattemptid}}"
           data-confirm-finish="{{confirmfinishmsg}}"
           data-unrated-warning="{{unratedwarningmsg}}"
           data-submitting="{{submittingmsg}}"
           data-rerecord="{{rerecordmsg}}"
           data-stop-recording="{{stoprecordingmsg}}"
-          data-record-audio="{{recordaudiolabel}}">
+          data-record-audio="{{recordaudiolabel}}"
+          data-ready-to-finalize="{{readytofinalizemsg}}"
+          data-questions-remaining="{{questionsremainingmsg}}"
+          data-draft-restored="{{draftrestoredmsg}}">
         <input type="hidden" name="id"         value="{{cmid}}" />
         <input type="hidden" name="mode"       value="oralexam" />
         <input type="hidden" name="action"     value="submit_eval" />
@@ -267,6 +273,10 @@
                     <span class="total-label">{{computedtotallabel}}</span>
                     <span id="liveTotalScore" class="total-score-value">0.0</span>
                     <span class="total-denom">/ {{sumgrades}}</span>
+                </div>
+                <div class="evaluation-readiness-pill" id="readinessPill" data-all-rated="false">
+                    <span class="readiness-icon" id="readinessIcon"><i class="fa fa-clock-o"></i></span>
+                    <span class="readiness-text" id="readinessText">{{questionsremainingmsg}}</span>
                 </div>
                 {{#canevaluate}}
                 <button type="submit"

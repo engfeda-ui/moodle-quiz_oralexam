@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.5.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,14 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.7 (2026-09-28)
+- **Live Readiness Indicator, Auto-Save Draft Recovery & Real-Time UX Hardening:**
+  - **Sticky Footer Live Readiness Indicator (`#readinessPill`)**: Real-time status pill positioned next to the live total score. While grading, it shows a subtle amber badge with the count of remaining unrated questions (`Remaining: 3` / `المتبقي: 3 أسئلة`). As soon as the final question receives a score, it smoothly shifts to glowing emerald green (`Ready to Finalize ✓` / `جاهز للاعتماد النهائي ✓`).
+  - **Zero-Loss Auto-Save Draft Recovery**: Automatically captures entered marks, slot feedback, and general notes in `sessionStorage` in real-time. If the page is accidentally refreshed or navigated away from, in-progress evaluations are instantly recovered on re-entry.
+  - **Animated Submission Spinner Feedback**: Replaces static text with an animated FontAwesome spinner (`<i class="fa fa-circle-o-notch fa-spin mr-2"></i>`) and disabled state during submission, preventing double-click submissions while large audio buffers are being processed.
+  - **Clean Draft Invalidation**: Automatically clears stored session drafts upon confirmed submission to ensure subsequent evaluations start fresh.
+  - **Compiled AMD Production Bundle**: Recompiled `amd/build/evaluator.min.js` incorporating live readiness and draft recovery logic.
 
 ### v1.5.6 (2026-09-28)
 - **Strict All-Questions-Rated Validation & Dynamic In-Page Error Alerts:**

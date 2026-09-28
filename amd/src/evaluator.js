@@ -122,6 +122,201 @@ define(['core/str'], function(Str) {
         if (display) {
             display.innerText = total.toFixed(1);
         }
+
+        updateReadinessStatus();
+        saveDraft();
+    }
+
+    /**
+     * Update the live readiness status pill in the sticky footer.
+     *
+     * @return {number} Count of remaining unrated visible questions.
+     */
+    function updateReadinessStatus() {
+        var form = document.getElementById('oralExamForm');
+        var pill = document.getElementById('readinessPill');
+        var textEl = document.getElementById('readinessText');
+        var iconEl = document.getElementById('readinessIcon');
+        if (!form || !pill || !textEl) {
+            return 0;
+        }
+
+        var inputs = form.querySelectorAll('.mark-input');
+        var unratedCount = 0;
+        inputs.forEach(function(inp) {
+            var card = inp.closest('.oralexam-qcard');
+            if (card && card.style.display === 'none') {
+                return; // Ignored if card hidden by model filter
+            }
+            var v = inp.value.trim();
+            if (v === '' || isNaN(parseFloat(v))) {
+                unratedCount++;
+            }
+        });
+
+        if (unratedCount === 0) {
+            pill.setAttribute('data-all-rated', 'true');
+            if (iconEl) {
+                iconEl.innerHTML = '<i class="fa fa-check-circle"></i>';
+            }
+            var readyMsg = form.getAttribute('data-ready-to-finalize') || 'Ready to Finalize ✓';
+            textEl.innerText = readyMsg;
+        } else {
+            pill.setAttribute('data-all-rated', 'false');
+            if (iconEl) {
+                iconEl.innerHTML = '<i class="fa fa-clock-o"></i>';
+            }
+            var remTpl = form.getAttribute('data-questions-remaining') || 'Remaining: {count}';
+            textEl.innerText = remTpl.replace(/\{\{count\}\}|\{count\}|\{\$a\}/g, String(unratedCount));
+        }
+
+        return unratedCount;
+    }
+
+    /**
+     * Get unique storage key for current candidate evaluation session.
+     *
+     * @return {string|null}
+     */
+    function getDraftKey() {
+        var form = document.getElementById('oralExamForm');
+        if (!form) {
+            return null;
+        }
+        var quizId = form.getAttribute('data-quiz-id') || '';
+        var studentId = form.getAttribute('data-student-id') || '';
+        var attemptId = form.getAttribute('data-attempt-id') || '0';
+        if (!quizId || !studentId) {
+            return null;
+        }
+        return 'oralexam_draft_' + quizId + '_' + studentId + '_' + attemptId;
+    }
+
+    /**
+     * Persist current entered marks, feedback, and notes into browser sessionStorage.
+     *
+     * @return {void}
+     */
+    function saveDraft() {
+        var key = getDraftKey();
+        if (!key || typeof window.sessionStorage === 'undefined') {
+            return;
+        }
+        var form = document.getElementById('oralExamForm');
+        if (!form) {
+            return;
+        }
+
+        var marks = {};
+        form.querySelectorAll('.mark-input').forEach(function(inp) {
+            var slot = inp.getAttribute('data-slot') || inp.id.replace('mark_', '');
+            if (slot && inp.value.trim() !== '') {
+                marks[slot] = inp.value.trim();
+            }
+        });
+
+        var feedback = {};
+        form.querySelectorAll('textarea[name^="feedback["]').forEach(function(ta) {
+            var m = ta.name.match(/feedback\[(\d+)\]/);
+            if (m && m[1] && ta.value.trim() !== '') {
+                feedback[m[1]] = ta.value.trim();
+            }
+        });
+
+        var general = '';
+        var gf = document.getElementById('oralGeneralFeedback');
+        if (gf && gf.value.trim() !== '') {
+            general = gf.value.trim();
+        }
+
+        try {
+            window.sessionStorage.setItem(key, JSON.stringify({
+                marks: marks,
+                feedback: feedback,
+                general: general,
+                savedAt: Date.now()
+            }));
+        } catch (e) {
+            // Storage quota exceeded or disabled.
+        }
+    }
+
+    /**
+     * Restore autosaved marks and feedback if page is reloaded.
+     *
+     * @return {void}
+     */
+    function restoreDraft() {
+        var key = getDraftKey();
+        if (!key || typeof window.sessionStorage === 'undefined') {
+            return;
+        }
+        try {
+            var raw = window.sessionStorage.getItem(key);
+            if (!raw) {
+                return;
+            }
+            var draft = JSON.parse(raw);
+            if (!draft) {
+                return;
+            }
+
+            var form = document.getElementById('oralExamForm');
+            if (!form) {
+                return;
+            }
+
+            var restoredAny = false;
+            if (draft.marks) {
+                Object.keys(draft.marks).forEach(function(slot) {
+                    var inp = document.getElementById('mark_' + slot);
+                    if (inp && inp.value.trim() === '') {
+                        inp.value = draft.marks[slot];
+                        restoredAny = true;
+                    }
+                });
+            }
+
+            if (draft.feedback) {
+                Object.keys(draft.feedback).forEach(function(slot) {
+                    var ta = form.querySelector('textarea[name="feedback[' + slot + ']"]');
+                    if (ta && ta.value.trim() === '') {
+                        ta.value = draft.feedback[slot];
+                        restoredAny = true;
+                    }
+                });
+            }
+
+            if (draft.general) {
+                var gf = document.getElementById('oralGeneralFeedback');
+                if (gf && gf.value.trim() === '') {
+                    gf.value = draft.general;
+                    restoredAny = true;
+                }
+            }
+
+            if (restoredAny) {
+                recalcTotal();
+            }
+        } catch (e) {
+            // Bad JSON or storage error.
+        }
+    }
+
+    /**
+     * Clear draft storage upon confirmed submission.
+     *
+     * @return {void}
+     */
+    function clearDraft() {
+        var key = getDraftKey();
+        if (key && typeof window.sessionStorage !== 'undefined') {
+            try {
+                window.sessionStorage.removeItem(key);
+            } catch (e) {
+                // Ignore.
+            }
+        }
     }
 
     /**
@@ -539,13 +734,16 @@ define(['core/str'], function(Str) {
 
         isSubmitting = true;
 
-        // Visual feedback on submit button immediately.
+        // Visual feedback on submit button immediately (with spinner).
         var btn = document.getElementById('submitOralExamBtn');
         if (btn) {
             var submittingMsg = form.getAttribute('data-submitting') || 'Saving...';
-            btn.innerText = submittingMsg;
+            btn.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-2"></i> ' + submittingMsg;
             btn.disabled = true;
         }
+
+        // Clear local draft so future sessions start clean.
+        clearDraft();
 
         // Flush all active audio recordings to base64, then submit form.
         stopAllRecordingsAndWait().then(function() {
@@ -590,6 +788,9 @@ define(['core/str'], function(Str) {
                 }
                 recalcTotal();
             }
+            if (el.tagName === 'TEXTAREA' && (el.name.indexOf('feedback') !== -1 || el.id === 'oralGeneralFeedback')) {
+                saveDraft();
+            }
         });
 
         document.addEventListener('change', function(e) {
@@ -602,6 +803,9 @@ define(['core/str'], function(Str) {
                     }
                 }
                 recalcTotal();
+            }
+            if (el.tagName === 'TEXTAREA' && (el.name.indexOf('feedback') !== -1 || el.id === 'oralGeneralFeedback')) {
+                saveDraft();
             }
         });
 
@@ -648,7 +852,9 @@ define(['core/str'], function(Str) {
          */
         init: function() {
             attachEvents();
+            restoreDraft();
             recalcTotal();
+            updateReadinessStatus();
         }
     };
 });

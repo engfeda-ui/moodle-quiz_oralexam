@@ -493,6 +493,9 @@ class quiz_oralexam_report extends quiz_default_report {
             'rerecordmsg'              => get_string('rerecord', 'quiz_oralexam'),
             'stoprecordingmsg'         => get_string('stoprecording', 'quiz_oralexam'),
             'recordaudiomsg'           => get_string('recordaudio', 'quiz_oralexam'),
+            'readytofinalizemsg'       => get_string('readytofinalize', 'quiz_oralexam'),
+            'questionsremainingmsg'    => get_string('questionsremaining', 'quiz_oralexam', '{{count}}'),
+            'draftrestoredmsg'         => get_string('draftrestored', 'quiz_oralexam'),
         ]);
     }
 
