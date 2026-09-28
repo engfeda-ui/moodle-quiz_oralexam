@@ -17,7 +17,8 @@
  * AMD module for quiz_oralexam report interactivity.
  *
  * Handles: candidate search filtering, live score calculation,
- * audio recording/playback, model filter toggling, and form confirmation.
+ * audio recording/playback with base64 conversion guarantee,
+ * model filter toggling, and synchronous form confirmation.
  *
  * @module     quiz_oralexam/evaluator
  * @copyright  2026 Mahmoud Salem
@@ -36,6 +37,8 @@ define(['core/str'], function(Str) {
     var activeTimers = {};
     /** @type {Object} Elapsed seconds keyed by slot. */
     var timerSeconds = {};
+    /** @type {Object} Base64 encoding Promises keyed by slot. */
+    var activeEncodings = {};
     /** @type {MediaStream|null} Shared microphone stream. */
     var mediaStream = null;
 
@@ -102,6 +105,10 @@ define(['core/str'], function(Str) {
         var inputs = document.querySelectorAll('.mark-input');
         var total = 0.0;
         inputs.forEach(function(inp) {
+            var card = inp.closest('.oralexam-qcard');
+            if (card && card.style.display === 'none') {
+                return;
+            }
             var v = parseFloat(inp.value);
             if (!isNaN(v)) {
                 total += v;
@@ -147,6 +154,72 @@ define(['core/str'], function(Str) {
     }
 
     /**
+     * Stop a single active recording slot and return a Promise that resolves
+     * when the audio blob has been completely read and converted into base64.
+     *
+     * @param {string|number} slot The question slot number.
+     * @return {Promise<void>}
+     */
+    function stopRecordingSlot(slot) {
+        var mr = activeMediaRecorders[slot];
+        if (!mr || mr.state !== 'recording') {
+            return activeEncodings[slot] ? activeEncodings[slot] : Promise.resolve();
+        }
+
+        clearInterval(activeTimers[slot]);
+
+        var btn = document.getElementById('rec-btn-' + slot);
+        if (btn) {
+            btn.classList.remove('recording');
+        }
+        var timerEl = document.getElementById('timer-' + slot);
+        if (timerEl) {
+            timerEl.style.display = 'none';
+        }
+        var labelEl = document.getElementById('rec-label-' + slot);
+        var form = document.getElementById('oralExamForm');
+        var rerecordMsg = form ? form.getAttribute('data-rerecord') : null;
+        if (labelEl && rerecordMsg) {
+            labelEl.innerText = rerecordMsg;
+        }
+
+        var stopPromise = new Promise(function(resolve) {
+            var origOnStop = mr.onstop;
+            mr.onstop = function(e) {
+                if (typeof origOnStop === 'function') {
+                    origOnStop.call(mr, e);
+                }
+                if (activeEncodings[slot]) {
+                    activeEncodings[slot].then(resolve).catch(resolve);
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        try {
+            mr.stop();
+        } catch (stopErr) {
+            // Already stopped or errored.
+            return Promise.resolve();
+        }
+
+        return stopPromise;
+    }
+
+    /**
+     * Stop all active recordings and wait for all base64 encodings to finish.
+     *
+     * @return {Promise<void>}
+     */
+    function stopAllRecordingsAndWait() {
+        var promises = Object.keys(activeMediaRecorders).map(function(slot) {
+            return stopRecordingSlot(slot);
+        });
+        return Promise.all(promises);
+    }
+
+    /**
      * Toggle recording start/stop for a given question slot.
      *
      * @param {HTMLElement} btn The record button element.
@@ -154,30 +227,42 @@ define(['core/str'], function(Str) {
      */
     function toggleRecord(btn) {
         var slot = btn.getAttribute('data-slot');
-        var timerEl = document.getElementById('timer-' + slot);
-        var timeVal = document.getElementById('time-val-' + slot);
-        var labelEl = document.getElementById('rec-label-' + slot);
+        var form = document.getElementById('oralExamForm');
 
-        // STOP if currently recording.
+        // If currently recording, STOP.
         if (activeMediaRecorders[slot] && activeMediaRecorders[slot].state === 'recording') {
-            activeMediaRecorders[slot].stop();
-            clearInterval(activeTimers[slot]);
-            btn.classList.remove('recording');
-            if (timerEl) {
-                timerEl.style.display = 'none';
-            }
-            return Str.get_string('rerecord', 'quiz_oralexam').then(function(msg) {
-                if (labelEl) {
-                    labelEl.innerText = msg;
+            return stopRecordingSlot(slot).then(function() {
+                var labelEl = document.getElementById('rec-label-' + slot);
+                var rerecordMsg = form ? form.getAttribute('data-rerecord') : null;
+                if (labelEl && rerecordMsg) {
+                    labelEl.innerText = rerecordMsg;
+                } else {
+                    return Str.get_string('rerecord', 'quiz_oralexam').then(function(msg) {
+                        if (labelEl) {
+                            labelEl.innerText = msg;
+                        }
+                    });
                 }
             });
         }
+
+        // Stop any OTHER recording first before starting this one.
+        var otherSlots = Object.keys(activeMediaRecorders).filter(function(s) {
+            return s !== String(slot);
+        });
+        otherSlots.forEach(function(s) {
+            stopRecordingSlot(s);
+        });
 
         // START recording.
         return getMicStream().then(function(stream) {
             if (!stream) {
                 return;
             }
+
+            var timerEl = document.getElementById('timer-' + slot);
+            var timeVal = document.getElementById('time-val-' + slot);
+            var labelEl = document.getElementById('rec-label-' + slot);
 
             var options = {audioBitsPerSecond: 16000};
             if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
@@ -204,7 +289,11 @@ define(['core/str'], function(Str) {
                 var previewWrap = document.getElementById('preview-wrap-' + slot);
                 var audioPreview = document.getElementById('audio-preview-' + slot);
                 var hiddenInput = document.getElementById('audiodata-' + slot);
+                var existingAudio = document.getElementById('existing-audio-' + slot);
 
+                if (existingAudio) {
+                    existingAudio.style.display = 'none';
+                }
                 if (audioPreview) {
                     audioPreview.src = URL.createObjectURL(blob);
                 }
@@ -212,14 +301,20 @@ define(['core/str'], function(Str) {
                     previewWrap.style.display = 'flex';
                 }
 
-                // Convert blob to base64 for form submission.
-                var reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = function() {
-                    if (hiddenInput) {
-                        hiddenInput.value = reader.result;
-                    }
-                };
+                // Convert blob to base64 and store promise so submit waits for it.
+                activeEncodings[slot] = new Promise(function(resolve) {
+                    var reader = new FileReader();
+                    reader.onloadend = function() {
+                        if (hiddenInput && reader.result) {
+                            hiddenInput.value = reader.result;
+                        }
+                        resolve();
+                    };
+                    reader.onerror = function() {
+                        resolve();
+                    };
+                    reader.readAsDataURL(blob);
+                });
             };
 
             mr.start(250);
@@ -246,11 +341,16 @@ define(['core/str'], function(Str) {
                 }
             }, 1000);
 
-            return Str.get_string('stoprecording', 'quiz_oralexam').then(function(msg) {
-                if (labelEl) {
-                    labelEl.innerText = msg;
-                }
-            });
+            var stopMsg = form ? form.getAttribute('data-stop-recording') : null;
+            if (labelEl && stopMsg) {
+                labelEl.innerText = stopMsg;
+            } else {
+                Str.get_string('stoprecording', 'quiz_oralexam').then(function(msg) {
+                    if (labelEl) {
+                        labelEl.innerText = msg;
+                    }
+                });
+            }
         }).catch(function(err) {
             // eslint-disable-next-line no-console
             console.error('Audio recording initialization error:', err);
@@ -270,6 +370,8 @@ define(['core/str'], function(Str) {
         var hiddenInput = document.getElementById('audiodata-' + slot);
         var recBtn = document.getElementById('rec-btn-' + slot);
         var labelEl = document.getElementById('rec-label-' + slot);
+        var existingAudio = document.getElementById('existing-audio-' + slot);
+        var form = document.getElementById('oralExamForm');
 
         if (audioPreview) {
             audioPreview.pause();
@@ -284,7 +386,16 @@ define(['core/str'], function(Str) {
         if (recBtn) {
             recBtn.classList.remove('recording');
         }
+        if (existingAudio) {
+            existingAudio.style.display = '';
+        }
+        delete activeEncodings[slot];
 
+        var recMsg = form ? form.getAttribute('data-record-audio') : null;
+        if (labelEl && recMsg) {
+            labelEl.innerText = recMsg;
+            return Promise.resolve();
+        }
         return Str.get_string('recordaudio', 'quiz_oralexam').then(function(msg) {
             if (labelEl) {
                 labelEl.innerText = msg;
@@ -318,6 +429,29 @@ define(['core/str'], function(Str) {
             }
         }
 
+        // Show/hide dedicated cards if question bank uses per-question model assignment.
+        var qcards = document.querySelectorAll('.oralexam-qcard');
+        qcards.forEach(function(card) {
+            if (model === 'all') {
+                card.style.display = '';
+                return;
+            }
+            var hasModelA = card.querySelector('.oral-model-a, .oral-model-A, [data-model="a"], [data-model="A"]');
+            var hasModelB = card.querySelector('.oral-model-b, .oral-model-B, [data-model="b"], [data-model="B"]');
+            var hasModelC = card.querySelector('.oral-model-c, .oral-model-C, [data-model="c"], [data-model="C"]');
+            var totalModelDivs = (hasModelA ? 1 : 0) + (hasModelB ? 1 : 0) + (hasModelC ? 1 : 0);
+
+            // If card only has models other than the selected one, hide card.
+            if (totalModelDivs > 0) {
+                var matchesCurrent = (model === 'a' && hasModelA) ||
+                                     (model === 'b' && hasModelB) ||
+                                     (model === 'c' && hasModelC);
+                card.style.display = matchesCurrent ? '' : 'none';
+            } else {
+                card.style.display = '';
+            }
+        });
+
         var gf = document.getElementById('oralGeneralFeedback');
         if (gf && model !== 'all') {
             var modelCode = model.toUpperCase();
@@ -326,66 +460,79 @@ define(['core/str'], function(Str) {
             var currentVal = gf.value.replace(/\[(النموذج |Model )[ABC]\]\s*/g, '').trim();
             gf.value = notePrefix + (currentVal ? ' ' + currentVal : '');
         }
+
+        recalcTotal();
     }
 
     /**
-     * Handle form submission: stop recordings, validate empty marks, confirm.
+     * Handle form submission: synchronous confirm, audio buffer flush, and submit.
      *
      * @param {Event} e Submit event.
-     * @return {Promise<void>}
+     * @return {void}
      */
     function handleFormSubmit(e) {
-        e.preventDefault();
+        var form = document.getElementById('oralExamForm') || (e.target ? e.target.closest('form') : null);
+        if (!form) {
+            return;
+        }
 
-        // Stop any active recordings first.
-        Object.keys(activeMediaRecorders).forEach(function(slot) {
-            if (activeMediaRecorders[slot] && activeMediaRecorders[slot].state === 'recording') {
-                activeMediaRecorders[slot].stop();
-                clearInterval(activeTimers[slot]);
-            }
-        });
-
-        var inputs = document.querySelectorAll('.mark-input');
+        // Check for empty marks.
+        var inputs = form.querySelectorAll('.mark-input');
         var emptyCount = 0;
         inputs.forEach(function(inp) {
+            var card = inp.closest('.oralexam-qcard');
+            if (card && card.style.display === 'none') {
+                return;
+            }
             var v = inp.value.trim();
             if (v === '' || isNaN(parseFloat(v))) {
                 emptyCount++;
             }
         });
 
-        var msgKeys;
+        // Build confirmation message synchronously from form attributes.
+        var confirmMsg = '';
         if (emptyCount > 0) {
-            msgKeys = Str.get_strings([
-                {key: 'unratedwarning', component: 'quiz_oralexam', param: emptyCount}
-            ]);
+            var warnTpl = form.getAttribute('data-unrated-warning') ||
+                'Warning: There are {count} questions without marks.\nUnrated questions will be assigned (0.0).\n\nProceed?';
+            confirmMsg = warnTpl.replace(/\{\{count\}\}|\{count\}|\{\$a\}/g, String(emptyCount));
         } else {
-            msgKeys = Str.get_strings([
-                {key: 'confirmfinish', component: 'quiz_oralexam'}
-            ]);
+            confirmMsg = form.getAttribute('data-confirm-finish') ||
+                'Are you sure you want to finalize this oral evaluation?';
         }
 
-        return msgKeys.then(function(msgs) {
-            var confirmMsg = msgs[0];
-            if (!window.confirm(confirmMsg)) {
-                return;
+        // Synchronous confirm prompt inside the user click gesture.
+        if (!window.confirm(confirmMsg)) {
+            e.preventDefault();
+            return;
+        }
+
+        // Prevent default browser submission while we guarantee audio flush.
+        e.preventDefault();
+
+        // Fill all empty unrated mark inputs with 0 before submission.
+        inputs.forEach(function(inp) {
+            var v = inp.value.trim();
+            if (v === '' || isNaN(parseFloat(v))) {
+                inp.value = '0';
             }
+        });
 
-            // Zero out any empty mark inputs before submitting.
-            inputs.forEach(function(inp) {
-                var v = inp.value.trim();
-                if (v === '' || isNaN(parseFloat(v))) {
-                    inp.value = '0';
-                }
-            });
+        // Visual feedback on submit button.
+        var btn = document.getElementById('submitOralExamBtn');
+        if (btn) {
+            var submittingMsg = form.getAttribute('data-submitting') || 'Saving...';
+            btn.innerText = submittingMsg;
+            btn.disabled = true;
+        }
 
-            return Str.get_string('submitting', 'quiz_oralexam').then(function(submittingMsg) {
-                var btn = document.getElementById('submitOralExamBtn');
-                if (btn) {
-                    btn.innerText = submittingMsg;
-                }
-                e.target.submit();
-            });
+        // Flush all active audio recordings to base64, then submit form.
+        stopAllRecordingsAndWait().then(function() {
+            HTMLFormElement.prototype.submit.call(form);
+        }).catch(function(err) {
+            // eslint-disable-next-line no-console
+            console.error('Error flushing audio recordings:', err);
+            HTMLFormElement.prototype.submit.call(form);
         });
     }
 
@@ -413,6 +560,13 @@ define(['core/str'], function(Str) {
             if (el.getAttribute('data-action') === 'search-candidates') {
                 filterCandidates(e);
             }
+            if (el.getAttribute('data-action') === 'mark-input') {
+                recalcTotal();
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            var el = e.target;
             if (el.getAttribute('data-action') === 'mark-input') {
                 recalcTotal();
             }

@@ -245,6 +245,19 @@ class quiz_oralexam_report extends quiz_default_report {
             }
         }
 
+        // Preload required JS strings for instant synchronous client access.
+        $PAGE->requires->strings_for_js([
+            'confirmfinish',
+            'unratedwarning',
+            'submitting',
+            'recordaudio',
+            'stoprecording',
+            'rerecord',
+            'discardaudio',
+            'micnotallowed',
+            'saveandfinish',
+        ], 'quiz_oralexam');
+
         // Initialise AMD module.
         $PAGE->requires->js_call_amd('quiz_oralexam/evaluator', 'init');
 
@@ -380,7 +393,7 @@ class quiz_oralexam_report extends quiz_default_report {
             $tabsc   = ($fatt->sumgrades !== null) ? round($fatt->sumgrades, 1) : 0;
             $attempttabs[] = [
                 'url'    => $taburl->out(false),
-                'label'  => get_string('questionno', 'quiz_oralexam', $fatt->attempt),
+                'label'  => '#' . $fatt->attempt,
                 'score'  => $tabsc,
                 'active' => (!$iscreatingnew && $fatt->id == $targetattemptid),
             ];
@@ -474,6 +487,12 @@ class quiz_oralexam_report extends quiz_default_report {
             'sumgrades'                => $quiz->sumgrades,
             'canevaluate'              => $canevaluate,
             'saveandfinishlabel'       => get_string('saveandfinish', 'quiz_oralexam'),
+            'confirmfinishmsg'         => get_string('confirmfinish', 'quiz_oralexam'),
+            'unratedwarningmsg'        => get_string('unratedwarning', 'quiz_oralexam', '{{count}}'),
+            'submittingmsg'            => get_string('submitting', 'quiz_oralexam'),
+            'rerecordmsg'              => get_string('rerecord', 'quiz_oralexam'),
+            'stoprecordingmsg'         => get_string('stoprecording', 'quiz_oralexam'),
+            'recordaudiomsg'           => get_string('recordaudio', 'quiz_oralexam'),
         ]);
     }
 

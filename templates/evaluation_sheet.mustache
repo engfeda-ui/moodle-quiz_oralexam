@@ -83,8 +83,13 @@
     </div>
     {{/hasattempts}}
 
-    {{! Evaluation Form }}
-    <form method="POST" action="{{actionurl}}" id="oralExamForm" data-action="oral-exam-form">
+    <form method="POST" action="{{actionurl}}" id="oralExamForm" data-action="oral-exam-form"
+          data-confirm-finish="{{confirmfinishmsg}}"
+          data-unrated-warning="{{unratedwarningmsg}}"
+          data-submitting="{{submittingmsg}}"
+          data-rerecord="{{rerecordmsg}}"
+          data-stop-recording="{{stoprecordingmsg}}"
+          data-record-audio="{{recordaudiolabel}}">
         <input type="hidden" name="id"         value="{{cmid}}" />
         <input type="hidden" name="mode"       value="oralexam" />
         <input type="hidden" name="action"     value="submit_eval" />
