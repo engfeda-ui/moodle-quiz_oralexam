@@ -6,6 +6,9 @@ node_modules/
 *.gift.txt
 *.gift
 .agents/
+AGENTS.md
+*-Mahmoud*
+*-Mahmoud.*
 
 # Deploy Scripts & Infrastructure Secrets
 *deploy*.ps1
