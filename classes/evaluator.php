@@ -420,7 +420,7 @@ class evaluator {
                 if (strpos($rawb64, 'base64,') !== false) {
                     $rawb64 = substr($rawb64, strpos($rawb64, 'base64,') + 7);
                 }
-                $binary = base64_decode($rawb64);
+                $binary = base64_decode(str_replace(' ', '+', $rawb64));
                 if (!empty($binary)) {
                     // Clean previous recording with any supported extension.
                     foreach (['webm', 'mp4', 'ogg'] as $e) {

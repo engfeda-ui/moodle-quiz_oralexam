@@ -464,67 +464,45 @@ define(['core/str'], function(Str) {
         recalcTotal();
     }
 
+    var isSubmitting = false;
+
     /**
-     * Handle form submission: synchronous confirm, audio buffer flush, and submit.
+     * Handle form submission: immediate submission, audio buffer flush, and submit.
      *
-     * @param {Event} e Submit event.
+     * @param {Event} e Submit or click event.
      * @return {void}
      */
     function handleFormSubmit(e) {
-        var form = document.getElementById('oralExamForm') || (e.target ? e.target.closest('form') : null);
+        if (e && e.preventDefault) {
+            e.preventDefault();
+        }
+        if (isSubmitting) {
+            return;
+        }
+
+        var form = document.getElementById('oralExamForm') || (e && e.target ? e.target.closest('form') : null);
         if (!form) {
             return;
         }
 
-        // Check for empty marks.
-        var inputs = form.querySelectorAll('.mark-input');
-        var emptyCount = 0;
-        inputs.forEach(function(inp) {
-            var card = inp.closest('.oralexam-qcard');
-            if (card && card.style.display === 'none') {
-                return;
-            }
-            var v = inp.value.trim();
-            if (v === '' || isNaN(parseFloat(v))) {
-                emptyCount++;
-            }
-        });
+        isSubmitting = true;
 
-        // Build confirmation message synchronously from form attributes.
-        var confirmMsg = '';
-        if (emptyCount > 0) {
-            var warnTpl = form.getAttribute('data-unrated-warning') ||
-                'Warning: There are {count} questions without marks.\nUnrated questions will be assigned (0.0).\n\nProceed?';
-            confirmMsg = warnTpl.replace(/\{\{count\}\}|\{count\}|\{\$a\}/g, String(emptyCount));
-        } else {
-            confirmMsg = form.getAttribute('data-confirm-finish') ||
-                'Are you sure you want to finalize this oral evaluation?';
-        }
-
-        // Synchronous confirm prompt inside the user click gesture.
-        if (!window.confirm(confirmMsg)) {
-            e.preventDefault();
-            return;
-        }
-
-        // Prevent default browser submission while we guarantee audio flush.
-        e.preventDefault();
-
-        // Fill all empty unrated mark inputs with 0 before submission.
-        inputs.forEach(function(inp) {
-            var v = inp.value.trim();
-            if (v === '' || isNaN(parseFloat(v))) {
-                inp.value = '0';
-            }
-        });
-
-        // Visual feedback on submit button.
+        // Visual feedback on submit button immediately.
         var btn = document.getElementById('submitOralExamBtn');
         if (btn) {
             var submittingMsg = form.getAttribute('data-submitting') || 'Saving...';
             btn.innerText = submittingMsg;
             btn.disabled = true;
         }
+
+        // Fill all empty unrated mark inputs with 0 before submission.
+        var inputs = form.querySelectorAll('.mark-input');
+        inputs.forEach(function(inp) {
+            var v = inp.value.trim();
+            if (v === '' || isNaN(parseFloat(v))) {
+                inp.value = '0';
+            }
+        });
 
         // Flush all active audio recordings to base64, then submit form.
         stopAllRecordingsAndWait().then(function() {
@@ -589,12 +567,21 @@ define(['core/str'], function(Str) {
             } else if (action === 'select-candidate') {
                 e.preventDefault();
                 selectCandidate(el);
+            } else if (action === 'submit-eval') {
+                handleFormSubmit(e);
             }
         });
 
         var form = document.getElementById('oralExamForm');
         if (form) {
             form.addEventListener('submit', handleFormSubmit);
+        }
+
+        var submitBtn = document.getElementById('submitOralExamBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                handleFormSubmit(e);
+            });
         }
     }
 

@@ -84,6 +84,7 @@
     {{/hasattempts}}
 
     <form method="POST" action="{{actionurl}}" id="oralExamForm" data-action="oral-exam-form"
+          enctype="multipart/form-data"
           data-confirm-finish="{{confirmfinishmsg}}"
           data-unrated-warning="{{unratedwarningmsg}}"
           data-submitting="{{submittingmsg}}"
@@ -264,7 +265,8 @@
                 {{#canevaluate}}
                 <button type="submit"
                         class="btn btn-primary btn-lg shadow-sm"
-                        id="submitOralExamBtn">{{saveandfinishlabel}}</button>
+                        id="submitOralExamBtn"
+                        data-action="submit-eval">{{saveandfinishlabel}}</button>
                 {{/canevaluate}}
             </div>
         </div>

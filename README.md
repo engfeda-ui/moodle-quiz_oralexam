@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.5.4-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,14 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.5 (2026-09-28)
+- **Eliminate Dialog Suppression Block, Form Multipart Encoding & Direct Submission Reliability:**
+  - **Eliminated `window.confirm` Blocker**: Removed `window.confirm()` from the submission flow in `amd/src/evaluator.js`. In modern Chromium/Edge browsers where dialogs are suppressed or muted, `window.confirm()` silently returns `false`, causing `e.preventDefault()` to cancel the submit action entirely. The Save & Finalize button now executes immediate submission without dialog dependence.
+  - **Direct Submit Event & Click Delegation**: Attached direct click handler on `submitOralExamBtn` (`data-action="submit-eval"`) alongside form `submit` event with an `isSubmitting` guard to guarantee immediate, duplicate-safe execution.
+  - **Multipart Form Encoding (`multipart/form-data`)**: Added `enctype="multipart/form-data"` to `oralExamForm` in `templates/evaluation_sheet.mustache` to ensure high-performance binary transport and avoid `+` to space URL-encoding corruption in base64 audio payloads.
+  - **Base64 Audio Server Decoding Safeguard (`evaluator.php`)**: Added `str_replace(' ', '+', $rawb64)` before `base64_decode` in `evaluator::submit_evaluation()` for rock-solid audio decoding resilience.
+  - **Compiled AMD Production Bundle**: Recompiled `amd/build/evaluator.min.js` with the updated non-blocking submission workflow.
 
 ### v1.5.4 (2026-09-28)
 - **Synchronous Assessment Submission, Audio Save Guarantee & AMD Migration Hardening:**
