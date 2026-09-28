@@ -93,6 +93,6 @@ $string['stoprecording'] = 'Stop';
 $string['studentnotenrolled'] = 'The selected student is not enrolled in this course.';
 $string['submitting'] = 'Saving & Recording Grade...';
 $string['totalstudents'] = 'Total Students';
-$string['unratedwarning'] = 'Warning: There are {$a} questions without marks.\nUnrated questions will automatically be assigned (0.0).\n\nDo you want to proceed and finalize the evaluation?';
+$string['unratedwarning'] = 'Cannot finalize evaluation: There are {$a} questions without marks! You must enter marks for all questions before saving.';
 $string['viewquizresults'] = 'View Official Gradebook & Results Table';
 $string['zero'] = '0% (Zero)';

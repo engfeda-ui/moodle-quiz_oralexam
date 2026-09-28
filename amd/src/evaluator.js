@@ -92,6 +92,10 @@ define(['core/str'], function(Str) {
         var input = document.getElementById('mark_' + slot);
         if (input) {
             input.value = val;
+            var card = input.closest('.oralexam-qcard');
+            if (card) {
+                card.classList.remove('qcard-missing-mark');
+            }
             recalcTotal();
         }
     }
@@ -467,7 +471,7 @@ define(['core/str'], function(Str) {
     var isSubmitting = false;
 
     /**
-     * Handle form submission: immediate submission, audio buffer flush, and submit.
+     * Handle form submission: strict all-questions-rated validation, audio buffer flush, and submit.
      *
      * @param {Event} e Submit or click event.
      * @return {void}
@@ -485,6 +489,54 @@ define(['core/str'], function(Str) {
             return;
         }
 
+        // Clean any previous unrated highlights and alert banner.
+        document.querySelectorAll('.oralexam-qcard').forEach(function(card) {
+            card.classList.remove('qcard-missing-mark');
+        });
+        var alertBox = document.getElementById('unratedQuestionsAlert');
+        var alertText = document.getElementById('unratedQuestionsText');
+        if (alertBox) {
+            alertBox.style.display = 'none';
+        }
+
+        // Check for empty marks on visible cards.
+        var inputs = form.querySelectorAll('.mark-input');
+        var unratedInputs = [];
+        inputs.forEach(function(inp) {
+            var card = inp.closest('.oralexam-qcard');
+            if (card && card.style.display === 'none') {
+                return; // Ignored if card hidden by model filter
+            }
+            var v = inp.value.trim();
+            if (v === '' || isNaN(parseFloat(v))) {
+                unratedInputs.push(inp);
+                if (card) {
+                    card.classList.add('qcard-missing-mark');
+                }
+            }
+        });
+
+        // STRICT MANDATORY RULE: If any question is unrated, BLOCK SAVE!
+        if (unratedInputs.length > 0) {
+            var warnTpl = form.getAttribute('data-unrated-warning') ||
+                'تنبيه: لا يمكن حفظ التقييم! يوجد {count} أسئلة لم يتم رصد درجات لها. يجب رصد درجات جميع الأسئلة أولاً قبل اعتماد التقييم.';
+            var warnMsg = warnTpl.replace(/\{\{count\}\}|\{count\}|\{\$a\}/g, String(unratedInputs.length));
+
+            if (alertBox && alertText) {
+                alertText.innerText = warnMsg;
+                alertBox.style.display = 'block';
+            }
+
+            // Scroll smoothly to the first unrated question card and focus it.
+            var firstCard = unratedInputs[0].closest('.oralexam-qcard');
+            if (firstCard) {
+                firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            unratedInputs[0].focus();
+
+            return; // STRICT BLOCK: Do not submit!
+        }
+
         isSubmitting = true;
 
         // Visual feedback on submit button immediately.
@@ -494,15 +546,6 @@ define(['core/str'], function(Str) {
             btn.innerText = submittingMsg;
             btn.disabled = true;
         }
-
-        // Fill all empty unrated mark inputs with 0 before submission.
-        var inputs = form.querySelectorAll('.mark-input');
-        inputs.forEach(function(inp) {
-            var v = inp.value.trim();
-            if (v === '' || isNaN(parseFloat(v))) {
-                inp.value = '0';
-            }
-        });
 
         // Flush all active audio recordings to base64, then submit form.
         stopAllRecordingsAndWait().then(function() {
@@ -539,6 +582,12 @@ define(['core/str'], function(Str) {
                 filterCandidates(e);
             }
             if (el.getAttribute('data-action') === 'mark-input') {
+                if (el.value.trim() !== '') {
+                    var card = el.closest('.oralexam-qcard');
+                    if (card) {
+                        card.classList.remove('qcard-missing-mark');
+                    }
+                }
                 recalcTotal();
             }
         });
@@ -546,6 +595,12 @@ define(['core/str'], function(Str) {
         document.addEventListener('change', function(e) {
             var el = e.target;
             if (el.getAttribute('data-action') === 'mark-input') {
+                if (el.value.trim() !== '') {
+                    var card = el.closest('.oralexam-qcard');
+                    if (card) {
+                        card.classList.remove('qcard-missing-mark');
+                    }
+                }
                 recalcTotal();
             }
         });

@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.5.5-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,13 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.6 (2026-09-28)
+- **Strict All-Questions-Rated Validation & Dynamic In-Page Error Alerts:**
+  - **Strict Mandatory Grading Enforcement**: Implemented a mandatory pre-submission guard in `amd/src/evaluator.js` that blocks saving if any question in the current model deck is missing a grade.
+  - **Visual Missing-Mark Highlights**: Questions without marks are instantly highlighted with a glowing red border (`.qcard-missing-mark`). As soon as an examiner enters a mark or clicks a quick score (`0%`, `50%`, `100%`), the red highlight automatically clears.
+  - **In-Page Alert Banner & Auto-Scroll**: Displays a prominent localized alert banner (`#unratedQuestionsAlert`) above the evaluation footer indicating the exact number of missing questions, and smoothly scrolls to and focuses the first unrated question card.
+  - **Compiled AMD Production Bundle**: Recompiled `amd/build/evaluator.min.js` with the updated validation engine.
 
 ### v1.5.5 (2026-09-28)
 - **Eliminate Dialog Suppression Block, Form Multipart Encoding & Direct Submission Reliability:**
