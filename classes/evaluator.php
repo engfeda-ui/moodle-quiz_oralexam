@@ -190,17 +190,79 @@ class evaluator {
         $questionsdata = [];
         $slotindex = 1;
 
+        // Batch preloads (one query each): question records, competency maps, and tags.
+        $slotqids = [];
+        foreach ($slots as $slot) {
+            $slotqids[(int)$slot->questionid] = (int)$slot->questionid;
+        }
+        $qrecords = !empty($slotqids) ? $DB->get_records_list('question', 'id', array_values($slotqids)) : [];
+        $compmap = [];
+        $tagmap = [];
+        if (!empty($slotqids)) {
+            [$mapinsql, $mapinparams] = $DB->get_in_or_equal(array_values($slotqids), SQL_PARAMS_NAMED, 'compq');
+            $qmapset = $DB->get_recordset_sql(
+                "SELECT m.questionid, c.id, c.idnumber, c.shortname, c.description,
+                        (CASE WHEN m.courseid = :cid THEN 1 ELSE 0 END) AS matchcourse
+                   FROM {qbank_comp_ext_qmap} m
+                   JOIN {competency} c ON c.id = m.competencyid
+                  WHERE m.questionid $mapinsql
+               ORDER BY matchcourse DESC",
+                array_merge(['cid' => $courseid], $mapinparams)
+            );
+            foreach ($qmapset as $row) {
+                $compmap[$row->questionid][] = $row;
+            }
+            $qmapset->close();
+            $tagset = $DB->get_recordset_sql(
+                "SELECT ti.itemid AS questionid, t.id, t.rawname
+                   FROM {tag_instance} ti
+                   JOIN {tag} t ON t.id = ti.tagid
+                  WHERE ti.itemtype = 'question' AND ti.itemid $mapinsql",
+                $mapinparams
+            );
+            foreach ($tagset as $row) {
+                if (stripos($row->rawname, 'comp-') === 0) {
+                    $tagmap[$row->questionid][] = (object)[
+                        'id' => $row->id,
+                        'idnumber' => $row->rawname,
+                        'shortname' => strtoupper($row->rawname),
+                        'description' => '',
+                    ];
+                }
+            }
+            $tagset->close();
+        }
+
+        // Hoisted out of the loop: module context and file storage are attempt-independent.
+        $sheetcm = get_coursemodule_from_instance('quiz', $quizid, $courseid);
+        $sheetcontext = $sheetcm ? \context_module::instance($sheetcm->id) : null;
+        $sheetfs = get_file_storage();
+        $sheetaudiofiles = [];
+        if ($attemptid > 0 && $sheetcontext) {
+            $files = $sheetfs->get_area_files(
+                $sheetcontext->id,
+                'quiz_oralexam',
+                'audio_recordings',
+                $attemptid,
+                'filename',
+                false
+            );
+            foreach ($files as $file) {
+                $sheetaudiofiles[$file->get_filename()] = $file;
+            }
+        }
+
         foreach ($slots as $slot) {
             $slotno = (int)$slot->slot;
             $maxmark = (float)$slot->maxmark;
             $questionid = (int)$slot->questionid;
 
-            $qrecord = $DB->get_record('question', ['id' => $questionid]);
+            $qrecord = $qrecords[$questionid] ?? null;
             if (!$qrecord) {
                 continue;
             }
 
-            $comps = self::get_question_competencies($questionid, $courseid);
+            $comps = $compmap[$questionid] ?? ($tagmap[$questionid] ?? []);
 
             $currentmark = null;
             $currentfeedback = '';
@@ -219,32 +281,20 @@ class evaluator {
 
             $audiourl = '';
             $hasaudio = false;
-            if ($attemptid > 0) {
-                $cm = get_coursemodule_from_instance('quiz', $quizid, $courseid);
-                if ($cm) {
-                    $context = \context_module::instance($cm->id);
-                    $fs = get_file_storage();
-                    foreach (['webm', 'mp4', 'ogg'] as $ext) {
-                        $audiofile = $fs->get_file(
-                            $context->id,
+            if ($attemptid > 0 && $sheetcontext) {
+                foreach (['webm', 'mp4', 'ogg'] as $ext) {
+                    $audiofile = $sheetaudiofiles['slot_' . $slotno . '.' . $ext] ?? null;
+                    if ($audiofile && !$audiofile->is_directory()) {
+                        $hasaudio = true;
+                        $audiourl = \moodle_url::make_pluginfile_url(
+                            $sheetcontext->id,
                             'quiz_oralexam',
                             'audio_recordings',
                             $attemptid,
                             '/',
-                            'slot_' . $slotno . '.' . $ext
-                        );
-                        if ($audiofile && !$audiofile->is_directory()) {
-                            $hasaudio = true;
-                            $audiourl = \moodle_url::make_pluginfile_url(
-                                $context->id,
-                                'quiz_oralexam',
-                                'audio_recordings',
-                                $attemptid,
-                                '/',
-                                $audiofile->get_filename()
-                            )->out(false);
-                            break;
-                        }
+                            $audiofile->get_filename()
+                        )->out(false);
+                        break;
                     }
                 }
             }
@@ -338,13 +388,17 @@ class evaluator {
         int $existingattemptid = 0,
         array $audiodata = []
     ) {
-        global $DB, $USER;
+        global $DB, $USER, $CFG;
 
         // Verify student is actively enrolled in course context.
         $coursecontext = \context_course::instance($course->id);
         if (!is_enrolled($coursecontext, $studentid)) {
             throw new \moodle_exception('studentnotenrolled', 'quiz_oralexam');
         }
+
+        // Defence in depth: grading requires the evaluate capability even when called directly.
+        $modulecontext = \context_module::instance($cm->id);
+        require_capability('quiz/oralexam:evaluate', $modulecontext);
 
         $quizobj = self::get_quiz_object($quiz->id, $studentid);
         $structure = $quizobj->get_structure();
@@ -414,13 +468,46 @@ class evaluator {
                 $ext = 'webm';
                 if (strpos($rawb64, 'audio/mp4') !== false) {
                     $ext = 'mp4';
-                } else if (strpos($rawb64, 'audio/ogg') !== false) {
+                } else if (strpos($rawb64, 'audio/ogg') !== false || strpos($rawb64, 'audio/opus') !== false) {
                     $ext = 'ogg';
                 }
                 if (strpos($rawb64, 'base64,') !== false) {
                     $rawb64 = substr($rawb64, strpos($rawb64, 'base64,') + 7);
                 }
-                $binary = base64_decode(str_replace(' ', '+', $rawb64));
+                $binary = base64_decode(str_replace(' ', '+', $rawb64), true);
+                if ($binary === false || $binary === '') {
+                    throw new \moodle_exception('audionotsupported', 'quiz_oralexam');
+                }
+                // Enforce site/course upload limits against storage exhaustion.
+                $maxbytes = get_max_upload_file_size($CFG->maxbytes ?? 0, $course->maxbytes ?? 0);
+                if (strlen($binary) > $maxbytes) {
+                    throw new \moodle_exception(
+                        'audiofiletoobig',
+                        'quiz_oralexam',
+                        '',
+                        display_size($maxbytes)
+                    );
+                }
+                // Sniff the real content type; never trust the data-URI label.
+                $audiomime = null;
+                if (class_exists('finfo')) {
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $audiomime = $finfo->buffer($binary);
+                }
+                $allowedmimes = ['audio/webm', 'video/webm', 'audio/mp4', 'video/mp4'];
+                $allowedmimes[] = 'audio/ogg';
+                $allowedmimes[] = 'application/ogg';
+                $allowedmimes[] = 'audio/opus';
+                if ($audiomime !== null && $audiomime !== false && !in_array($audiomime, $allowedmimes, true)) {
+                    throw new \moodle_exception('audionotsupported', 'quiz_oralexam');
+                }
+                if ($audiomime === 'audio/mp4' || $audiomime === 'video/mp4') {
+                    $ext = 'mp4';
+                } else if (strpos((string)$audiomime, 'ogg') !== false || strpos((string)$audiomime, 'opus') !== false) {
+                    $ext = 'ogg';
+                } else {
+                    $ext = 'webm';
+                }
                 if (!empty($binary)) {
                     // Clean previous recording with any supported extension.
                     foreach (['webm', 'mp4', 'ogg'] as $e) {
@@ -586,7 +673,7 @@ class evaluator {
             '<div style="' . $titlestyle . '">' .
             '<span style="font-size: 15px;">🎙️</span> ' . s($audiolabel) .
             '</div>' .
-            '<audio controls preload="metadata" src="' . $audiourl . '" style="' . $audiostyle . '"></audio>' .
+            '<audio controls preload="metadata" src="' . s($audiourl) . '" style="' . $audiostyle . '"></audio>' .
             "</div>\n" .
             "<!-- ORALEXAM_AUDIO_END -->";
     }

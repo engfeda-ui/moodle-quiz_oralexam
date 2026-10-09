@@ -56,19 +56,29 @@ function quiz_oralexam_pluginfile($course, $cm, $context, $filearea, $args, $for
         return false;
     }
 
+    // Strict filename whitelist: examiner recordings only (slot_N.webm|mp4|ogg).
+    if (!preg_match('/^slot_\d+\.(webm|mp4|ogg)$/', $filename)) {
+        return false;
+    }
+
     // Load attempt to verify access.
     $attempt = $DB->get_record('quiz_attempts', ['id' => $attemptid]);
     if (!$attempt) {
         return false;
     }
 
-    // Access control: User must be the student reviewing their own attempt,
-    // or an examiner/grader with permissions.
-    $canviewreports = has_capability('mod/quiz:viewreports', $context);
+    // Bind the attempt to this quiz activity; reject cross-activity probing.
+    if ((int)$attempt->quiz !== (int)$cm->instance) {
+        return false;
+    }
+
+    // Access control: the student may review their own attempt; examiners need
+    // quiz/oralexam:view or quiz/oralexam:evaluate. Recordings are biometric data,
+    // so generic mod/quiz:viewreports alone is intentionally not sufficient here.
     $canevaluate = has_capability('quiz/oralexam:view', $context) || has_capability('quiz/oralexam:evaluate', $context);
     $isowner = ($USER->id == $attempt->userid);
 
-    if (!$canviewreports && !$canevaluate && !$isowner) {
+    if (!$canevaluate && !$isowner) {
         return false;
     }
 

@@ -103,6 +103,17 @@ class quiz_oralexam_report extends quiz_default_report {
             $postnewattempt  = optional_param('newattempt', 0, PARAM_INT);
             $postaudio       = optional_param_array('audiodata', [], PARAM_RAW_TRIMMED);
 
+            // Grade submissions are only accepted for enrolled candidates in scope.
+            $coursecontext = $context->get_course_context();
+            $postuser = $DB->get_record('user', ['id' => $poststudentid]);
+            $postallowed = $postuser
+                && is_enrolled($coursecontext, $postuser)
+                && ($selectedgroup <= 0 || groups_is_member($selectedgroup, $postuser->id));
+            if (!$postallowed) {
+                \core\notification::error(get_string('studentnotenrolled', 'quiz_oralexam'));
+                redirect($baseurl);
+            }
+
             if ($postnewattempt || $isnewattempt) {
                 $targetattemptid = 0; // Force brand new attempt.
             }
@@ -210,8 +221,13 @@ class quiz_oralexam_report extends quiz_default_report {
             if (isset($candidates[$selectedstudent])) {
                 $activecand = $candidates[$selectedstudent];
             } else {
+                // Secure fallback: only enrolled course users, respecting the active group.
+                $coursecontext = $context->get_course_context();
                 $selecteduser = $DB->get_record('user', ['id' => $selectedstudent]);
-                if ($selecteduser) {
+                $allowed = $selecteduser
+                    && is_enrolled($coursecontext, $selecteduser)
+                    && ($selectedgroup <= 0 || groups_is_member($selectedgroup, $selecteduser->id));
+                if ($allowed) {
                     $attparams = ['quiz' => $quiz->id, 'userid' => $selectedstudent];
                     $candatts  = $DB->get_records('quiz_attempts', $attparams, 'attempt ASC');
                     $lastatt   = !empty($candatts) ? end($candatts) : null;

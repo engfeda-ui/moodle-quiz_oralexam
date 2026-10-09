@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
-[![Version](https://img.shields.io/badge/Version-v1.5.7-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
+[![Version](https://img.shields.io/badge/Version-v1.5.8-blue.svg?style=flat-square)](https://github.com/engfeda-ui/moodle-quiz_oralexam)
 
 A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Practical Examinations (OSCE, Oral Defenses, and Technical Workshop assessments)**. It allows examiners and instructors to directly assess and grade students question-by-question live on behalf of the student without requiring student self-submission, while linking each question directly to its competency from `qbank_comp_ext`.
 
@@ -81,6 +81,15 @@ A specialized Moodle Quiz Report sub-plugin designed for **in-person Oral and Pr
 ---
 
 ## 📋 Changelog
+
+### v1.5.8 (2026100900) — 2026-10-09
+- **Security & Privacy Hardening (Audit Fixes):**
+  - **Real Privacy Provider:** Replaced false `null_provider` with a full provider declaring the `audio_recordings` file area, plus export and deletion for GDPR compliance.
+  - **IDOR Fixed:** Candidate fallback and grade POST now require course enrollment and active-group membership.
+  - **Defence in Depth:** `submit_evaluation()` now enforces `quiz/oralexam:evaluate` internally.
+  - **Upload Hardening:** Strict base64 decoding, site/course size caps, and audio MIME sniffing (webm/mp4/ogg only).
+  - **pluginfile Tightened:** Attempt-to-quiz binding, `slot_N` filename whitelist, and examiner-only audio access.
+- **Performance:** Batched question/competency/audio preloads in `get_quiz_questions()` (was ~120 queries per candidate view).
 
 ### v1.5.7 (2026-09-28)
 - **Live Readiness Indicator, Auto-Save Draft Recovery & Real-Time UX Hardening:**
